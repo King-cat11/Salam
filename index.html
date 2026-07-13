@@ -31,21 +31,6 @@
     position:relative;
   }
 
-  /* نجوم */
-  .stars{ position:fixed; inset:0; z-index:0; pointer-events:none; }
-  .stars span{
-    position:absolute; width:2px; height:2px; background:#e8f0ff;
-    border-radius:50%; opacity:.8; animation:twinkle 3s infinite ease-in-out;
-  }
-  @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:1;} }
-
-  /* ثلج */
-  .pubg-flake{
-    position:absolute; top:-2vh; color:#cfe3f7;
-    animation-timing-function:linear; animation-iteration-count:infinite;
-    will-change:transform; line-height:1;
-  }
-
   /* هيدر */
   header{
     position:relative; width:100%;
@@ -204,12 +189,6 @@
     display:flex; gap:12px;
   }
 
-  /* نجوم جوه صفحة المزيد */
-  .page-stars{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-  .page-stars span{
-    position:absolute; width:2px; height:2px; background:#e8f0ff;
-    border-radius:50%; opacity:.8; animation:twinkle 3s infinite ease-in-out;
-  }
   .more-games-grid{
     display:grid; grid-template-columns:repeat(3,1fr); column-gap:14px; row-gap:50px;
   }
@@ -350,9 +329,6 @@
     border:none; border-radius:11px;
     overflow:hidden;
   }
-
-  /* تلج خلفية صفحة ببجي (نفس نظام تلج الموقع) */
-  .pubg-snow{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
 
   /* صفحة ببجي الكاملة (نظام الطلب) */
   #pubgPage{
@@ -566,14 +542,24 @@
 <div class="carousel">
   <div class="carousel-viewport">
     <div class="carousel-track" id="track">
-      <div class="slide"><span class="num">١</span></div>
-      <div class="slide"><span class="num">٢</span></div>
-      <div class="slide"><span class="num">٣</span></div>
-      <div class="slide"><span class="num">٤</span></div>
-      <div class="slide"><span class="num">٥</span></div>
-      <div class="slide"><span class="num">٦</span></div>
-      <div class="slide"><span class="num">٧</span></div>
-      <div class="slide"><span class="num">٨</span></div>
+      <div class="slide" onclick="openSteamPage()" style="cursor:pointer;position:relative;overflow:hidden;padding:0;">
+        <img src="https://raw.githubusercontent.com/King-cat11/Salam/main/IMG-20260706-WA0301.jpg" loading="lazy" alt="Steam" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <div style="position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px;background:linear-gradient(0deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,0) 55%);">
+          <span style="font-family:'Cairo',sans-serif;font-weight:900;color:#fff;font-size:1.05rem;text-shadow:0 2px 6px rgba(0,0,0,.5);">Steam</span>
+        </div>
+      </div>
+      <div class="slide" onclick="openExitLagPage()" style="cursor:pointer;position:relative;overflow:hidden;padding:0;">
+        <img src="https://raw.githubusercontent.com/King-cat11/Salam/main/IMG-20260705-WA0260.jpg" loading="lazy" alt="ExitLag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <div style="position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px;background:linear-gradient(0deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,0) 55%);">
+          <span style="font-family:'Cairo',sans-serif;font-weight:900;color:#fff;font-size:1.05rem;text-shadow:0 2px 6px rgba(0,0,0,.5);">ExitLag</span>
+        </div>
+      </div>
+      <div class="slide" onclick="openFreefire()" style="cursor:pointer;position:relative;overflow:hidden;padding:0;">
+        <img src="https://raw.githubusercontent.com/King-cat11/Salam/main/IMG-20260707-WA0068.jpg" loading="lazy" alt="Free Fire" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <div style="position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px;background:linear-gradient(0deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,0) 55%);">
+          <span style="font-family:'Cairo',sans-serif;font-weight:900;color:#fff;font-size:1.05rem;text-shadow:0 2px 6px rgba(0,0,0,.5);">Free Fire</span>
+        </div>
+      </div>
     </div>
     <button class="arr-btn" id="prevBtn">&#10094;</button>
     <button class="arr-btn" id="nextBtn">&#10095;</button>
@@ -691,8 +677,7 @@
 
 <!-- ROBLOX PAGE -->
 <div id="robloxPage" class="rpage" style="background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);">
-  <div class="page-stars" id="robloxPageStars"></div>
-  <div class="pubg-snow" id="rbxSnow"></div>
+
   <div class="rpage-header" style="border-bottom-color:rgba(127,179,224,.3);">
     <button class="rpage-back" style="border-color:rgba(127,179,224,.5);color:var(--gold-lt);" onclick="closeRoblox()">&#8594; Back</button>
     <div class="rpage-title">
@@ -892,6 +877,8 @@
           <div class="country-option selected" onclick="selectPsnCountry('🇺🇸','USA')">🇺🇸 USA</div>
           <div class="country-option" onclick="selectPsnCountry('🇦🇪','UAE')">🇦🇪 UAE</div>
           <div class="country-option" onclick="selectPsnCountry('🇬🇧','UK')">🇬🇧 UK</div>
+          <div class="country-option" onclick="selectPsnCountry('🇹🇷','Turkey')">🇹🇷 Turkey</div>
+          <div class="country-option" onclick="selectPsnCountry('🇸🇦','KSA')">🇸🇦 KSA</div>
         </div>
       </div>
       <div class="merged-card" style="--frame-color:#0b3d91;">
@@ -928,24 +915,9 @@
     </div>
   </div>
 
-  <div class="rpage-panels" style="position:relative; z-index:1; display:flex; flex-direction:column; gap:12px; padding-top:20px;">
-    <div class="merged-card-row">
-      <div class="merged-card">
-        <div class="game-card sq">
-          <div class="bg" style="background:#1a5c8a;"></div>
-        </div>
-        </div>
-      <div class="merged-card">
-        <div class="game-card sq">
-          <div class="bg" style="background:#1a5c8a;"></div>
-        </div>
-        </div>
-      <div class="merged-card">
-        <div class="game-card sq">
-          <div class="bg" style="background:#1a5c8a;"></div>
-        </div>
-        </div>
-    </div>
+  <div class="rpage-panels" style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:20px; min-height:60vh;">
+    <div style="text-align:center;font-weight:900;font-size:2rem;color:var(--gold-lt);font-family:'Cairo',sans-serif;letter-spacing:.02em;">Coming Soon</div>
+  </div>
   </div>
 </div>
 
@@ -1238,7 +1210,6 @@
 
 <!-- PUBG PAGE -->
 <div id="pubgPage" class="rpage">
-  <div class="pubg-snow" id="pubgSnow"></div>
   <div class="rpage-header" style="border-bottom-color:rgba(26,92,138,.3);">
     <button class="rpage-back" style="border-color:rgba(26,92,138,.5);color:var(--gold);" onclick="closePubg()">&#8594; Back</button>
     <div class="rpage-title">
@@ -1342,7 +1313,6 @@
 
 <!-- FIFA PAGE -->
 <div id="fifaPage" class="rpage">
-  <div class="pubg-snow" id="fifaSnow"></div>
 
   <div class="rpage-header" style="border-bottom-color:rgba(111,207,58,.3);">
     <button class="rpage-back" style="border-color:rgba(111,207,58,.5);color:#6fcf3a;" onclick="closeFifa()">&#8594; Back</button>
@@ -1425,7 +1395,6 @@
 
 <!-- FREE FIRE PAGE -->
 <div id="ffPage" class="rpage">
-  <div class="pubg-snow" id="ffSnow"></div>
 
   <div class="rpage-header" style="border-bottom-color:rgba(0,180,216,.3);">
     <button class="rpage-back" style="border-color:rgba(0,180,216,.5);color:#00b4d8;" onclick="closeFreefire()">&#8594; Back</button>
@@ -1659,7 +1628,9 @@
       <div style="min-width:100%;display:flex;gap:12px;padding:0;">
         ${set.map(item => item.empty ? `
           <div style="flex:1 1 0;min-width:0;">
-            <div class="game-card sq" style="border:2px dashed rgba(127,179,224,.25);border-radius:14px;background:rgba(127,179,224,.05);"></div>
+            <div class="game-card sq" style="border:2px dashed rgba(127,179,224,.25);border-radius:14px;background:rgba(127,179,224,.05);display:flex;align-items:center;justify-content:center;">
+              <span style="font-weight:900;font-size:.95rem;color:var(--gold-lt,#eaf1fb);font-family:'Cairo',sans-serif;text-align:center;">Coming Soon</span>
+            </div>
           </div>
         ` : `
           <div class="merged-card" onclick="${item.fn}" style="cursor:pointer;--frame-color:${item.color};flex:1 1 0;min-width:0;">
@@ -1691,79 +1662,6 @@
   }
 
   buildPcGamesSlides();
-
-  // كيفريمز الثلج (مستخدمة في صفحات ببجي/فيفا/فري فاير/روبلوكس)
-  const ss=document.createElement('style');
-  let kr='';
-  for(let i=0;i<5;i++){
-    const m=(Math.random()*60-30);
-    kr+=`@keyframes fall-${i}{0%{transform:translate(0,-5vh);}50%{transform:translate(${m}px,50vh);}100%{transform:translate(var(--drift,0),105vh);}}`;
-  }
-  ss.textContent=kr; document.head.appendChild(ss);
-
-  // ثلج صفحة ببجي (نجمة تلج ❄)
-  const pubgSnowBox=document.getElementById('pubgSnow');
-  for(let i=0;i<20;i++){
-    const f=document.createElement('div');
-    f.className='pubg-flake';
-    f.textContent='❄';
-    const sz=Math.random()*10+8;
-    f.style.cssText=`font-size:${sz}px;opacity:${(Math.random()*.5+.35).toFixed(2)};left:${Math.random()*100}%;`;
-    f.style.setProperty('--drift',(Math.random()*140-70)+'px');
-    const fd=(Math.random()*12+10), sd=(Math.random()*3+2);
-    f.style.animationName=`fall-${i%5}`;
-    f.style.animationDuration=fd+'s';
-    f.style.animationDelay=(Math.random()*-fd)+'s';
-    pubgSnowBox.appendChild(f);
-  }
-
-  // ثلج صفحة فيفا (نفس ثلج ببجي)
-  const fifaSnowBox=document.getElementById('fifaSnow');
-  for(let i=0;i<20;i++){
-    const f=document.createElement('div');
-    f.className='pubg-flake';
-    f.textContent='❄';
-    const sz=Math.random()*10+8;
-    f.style.cssText=`font-size:${sz}px;opacity:${(Math.random()*.5+.35).toFixed(2)};left:${Math.random()*100}%;`;
-    f.style.setProperty('--drift',(Math.random()*140-70)+'px');
-    const fd=(Math.random()*12+10);
-    f.style.animationName=`fall-${i%5}`;
-    f.style.animationDuration=fd+'s';
-    f.style.animationDelay=(Math.random()*-fd)+'s';
-    fifaSnowBox.appendChild(f);
-  }
-
-  // ثلج صفحة فري فاير (نفس ثلج ببجي)
-  const ffSnowBox=document.getElementById('ffSnow');
-  for(let i=0;i<20;i++){
-    const f=document.createElement('div');
-    f.className='pubg-flake';
-    f.textContent='❄';
-    const sz=Math.random()*10+8;
-    f.style.cssText=`font-size:${sz}px;opacity:${(Math.random()*.5+.35).toFixed(2)};left:${Math.random()*100}%;`;
-    f.style.setProperty('--drift',(Math.random()*140-70)+'px');
-    const fd=(Math.random()*12+10);
-    f.style.animationName=`fall-${i%5}`;
-    f.style.animationDelay=(Math.random()*-fd)+'s';
-    f.style.animationDuration=fd+'s';
-    ffSnowBox.appendChild(f);
-  }
-
-  // ثلج صفحة روبلوكس (نفس ثلج ببجي)
-  const rbxSnowBox=document.getElementById('rbxSnow');
-  for(let i=0;i<20;i++){
-    const f=document.createElement('div');
-    f.className='pubg-flake';
-    f.textContent='❄';
-    const sz=Math.random()*10+8;
-    f.style.cssText=`font-size:${sz}px;opacity:${(Math.random()*.5+.35).toFixed(2)};left:${Math.random()*100}%;`;
-    f.style.setProperty('--drift',(Math.random()*140-70)+'px');
-    const fd=(Math.random()*12+10);
-    f.style.animationName=`fall-${i%5}`;
-    f.style.animationDelay=(Math.random()*-fd)+'s';
-    f.style.animationDuration=fd+'s';
-    rbxSnowBox.appendChild(f);
-  }
 
   // ضبط top للصف الثاني من الكروت ديناميكيًا
   function positionGameRows() {
@@ -1838,7 +1736,6 @@
 
   // ══════════════ روبلوكس ══════════════
   function openRoblox() {
-    buildStars('robloxPageStars');
     document.getElementById('robloxPage').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -2007,17 +1904,6 @@
   }
 
   // ══════════════ صفحات الفئة (كوبونات / بلايستيشن / كمبيوتر) منفصلة ══════════════
-  function buildStars(boxId) {
-    const box = document.getElementById(boxId);
-    if (box.childElementCount) return;
-    for (let i = 0; i < 150; i++) {
-      const s = document.createElement('span');
-      s.style.left = Math.random() * 100 + '%';
-      s.style.top = Math.random() * 100 + '%';
-      s.style.animationDelay = Math.random() * 3 + 's';
-      box.appendChild(s);
-    }
-  }
   function openCouponsPage() {
     document.getElementById('couponsPage').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -2576,6 +2462,21 @@
       <div class="pcard" data-label="PSN - 10 GBP" data-price="814" onclick="togglePsnAmt(this)"><span class="rob-val">£10</span><span class="sep"></span><span class="egp">814 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
       <div class="pcard" data-label="PSN - 40 GBP" data-price="3255" onclick="togglePsnAmt(this)"><span class="rob-val">£40</span><span class="sep"></span><span class="egp">3,255 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
       <div class="pcard" data-label="PSN - 100 GBP" data-price="8138" onclick="togglePsnAmt(this)"><span class="rob-val">£100</span><span class="sep"></span><span class="egp">8,138 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+    `,
+    Turkey: `
+      <div class="pcard" data-label="PSN - 250 TL" data-price="336" onclick="togglePsnAmt(this)"><span class="rob-val">250 TL</span><span class="sep"></span><span class="egp">336 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 500 TL" data-price="672" onclick="togglePsnAmt(this)"><span class="rob-val">500 TL</span><span class="sep"></span><span class="egp">672 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 750 TL" data-price="1008" onclick="togglePsnAmt(this)"><span class="rob-val">750 TL</span><span class="sep"></span><span class="egp">1,008 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 1000 TL" data-price="1344" onclick="togglePsnAmt(this)"><span class="rob-val">1000 TL</span><span class="sep"></span><span class="egp">1,344 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 1500 TL" data-price="2016" onclick="togglePsnAmt(this)"><span class="rob-val">1500 TL</span><span class="sep"></span><span class="egp">2,016 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 4000 TL" data-price="5355" onclick="togglePsnAmt(this)"><span class="rob-val">4000 TL</span><span class="sep"></span><span class="egp">5,355 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+    `,
+    KSA: `
+      <div class="pcard" data-label="PSN - 10 USD KSA" data-price="539" onclick="togglePsnAmt(this)"><span class="rob-val">$10</span><span class="sep"></span><span class="egp">539 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 20 USD KSA" data-price="1187" onclick="togglePsnAmt(this)"><span class="rob-val">$20</span><span class="sep"></span><span class="egp">1,187 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 50 USD KSA" data-price="2966" onclick="togglePsnAmt(this)"><span class="rob-val">$50</span><span class="sep"></span><span class="egp">2,966 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 100 USD KSA" data-price="5933" onclick="togglePsnAmt(this)"><span class="rob-val">$100</span><span class="sep"></span><span class="egp">5,933 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
+      <div class="pcard" data-label="PSN - 160 USD KSA" data-price="9492" onclick="togglePsnAmt(this)"><span class="rob-val">$160</span><span class="sep"></span><span class="egp">9,492 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePsnQtyCard(this,1)">+</button></div></div>
     `
   };
   function selectPsnCountry(flag, name) {
