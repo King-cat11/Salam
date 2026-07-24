@@ -5,12 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Arthur</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<!-- Firebase (Auth + Firestore) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDOT9kXMEQrEy09vnDF_rbDGQpZB3Xyh7Y",
+  authDomain: "salaam-a7a05.firebaseapp.com",
+  projectId: "salaam-a7a05",
+  storageBucket: "salaam-a7a05.firebasestorage.app",
+  messagingSenderId: "980637704419",
+  appId: "1:980637704419:web:7ba4066d28cd5b069825d6",
+  measurementId: "G-W34G2K2CXR"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDb   = firebase.firestore();
+</script>
 <style>
 :root{
 --sky-top:#020a16;
 --sky-mid:#03142c;
 --app-max:480px;
-/* ألوان نظام كروت الشحن (ببجي) */
+/* Charge card system colors (PUBG) */
 --black:   #0d0d0d;
 --white:   #f5f3ee;
 --gold:    #1a5c8a;
@@ -30,7 +48,7 @@ min-height:100dvh;
 background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);
 position:relative;
 }
-/* هيدر */
+/* Header */
 header{
 position:relative; width:100%;
 z-index:20;
@@ -52,7 +70,7 @@ justify-content:center; gap:5px; width:34px;
 display:block; width:100%; height:2px;
 background:#eaf1fb; border-radius:2px;
 }
-/* كاروسيل */
+/* Carousel */
 .carousel{
 position:relative; width:100%;
 z-index:15;
@@ -80,7 +98,7 @@ flex-shrink:0;
 font-size:.8rem; color:rgba(255,255,255,0.5);
 letter-spacing:2px; text-transform:uppercase;
 }
-/* ألوان الكروت - كلها أزرق */
+/* Card colors - all blue */
 .slide:nth-child(1){ background:linear-gradient(135deg,#0d2f52,#1a5c8a); }
 .slide:nth-child(2){ background:linear-gradient(135deg,#0a2540,#2a6ea8); }
 .slide:nth-child(3){ background:linear-gradient(135deg,#0d2f52,#1a5c8a); }
@@ -89,7 +107,7 @@ letter-spacing:2px; text-transform:uppercase;
 .slide:nth-child(6){ background:linear-gradient(135deg,#0a2540,#2a6ea8); }
 .slide:nth-child(7){ background:linear-gradient(135deg,#0d2f52,#1a5c8a); }
 .slide:nth-child(8){ background:linear-gradient(135deg,#0a2540,#2a6ea8); }
-/* أسهم - ثابتة في نص الكروت من الجانبين */
+/* Arrows - fixed at card center on both sides */
 .arr-btn{
 position:absolute;
 top:50%;
@@ -109,20 +127,20 @@ z-index:5;
 display:flex; align-items:center; justify-content:center;
 margin-top:6px; padding-bottom:4px;
 }
-/* نقاط */
+/* Dots */
 .dots{ display:flex; gap:7px; align-items:center; }
 .dot{
 width:7px; height:7px; border-radius:50%;
 background:rgba(255,255,255,0.25); transition:.2s; cursor:pointer;
 }
 .dot.active{ background:#7fb3e0; transform:scale(1.3); }
-/* محتوى الصفحة الرئيسية */
+/* Main page content */
 main{
 position:relative; z-index:10;
 padding-bottom:40px;
 min-height:100vh;
 }
-/* سايدبار */
+/* Sidebar */
 .sidebar{
 position:fixed; top:0; right:-260px; width:220px; height:100%;
 background:#000; z-index:30;
@@ -138,12 +156,22 @@ border-bottom:1px solid rgba(255,255,255,0.08);
 cursor:pointer; transition:.2s;
 }
 .sidebar a:hover{ opacity:1; color:#7fb3e0; }
+.sidebar-avatar{
+width:38px; height:38px; border-radius:50%; flex-shrink:0;
+background:linear-gradient(135deg,#1a5c8a,#7fb3e0);
+display:flex; align-items:center; justify-content:center;
+font-family:'Cairo',sans-serif; font-weight:900; font-size:1.05rem; color:#fff;
+}
+.sidebar-avatar.guest{
+font-size:.52rem; letter-spacing:.01em; font-weight:800;
+background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.25); color:#eaf1fb;
+}
 .overlay{
 position:fixed; inset:0; background:rgba(0,0,0,0.45);
 z-index:25; display:none;
 }
 .overlay.show{ display:block; }
-/* صفحات داخلية */
+/* Internal pages */
 .page{
 position:fixed; inset:0; z-index:40;
 background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 100%);
@@ -167,7 +195,7 @@ text-align:center; padding:24px;
 }
 .page-body h2{ font-size:1.6rem; margin-bottom:12px; }
 .page-body p{ color:#b9c8dd; line-height:1.8; }
-/* ══════════════ نظام كرت ببجي (منقول بالكامل) ══════════════ */
+/* ══════════════ PUBG card system (fully migrated) ══════════════ */
 .more-games-grid{
 display:grid; grid-template-columns:repeat(3,1fr); column-gap:14px; row-gap:50px;
 }
@@ -233,8 +261,8 @@ letter-spacing:.04em; margin-bottom:3px;
 .game-card .status{ font-family:'Cairo',sans-serif; font-size:.65rem; font-weight:700; color:var(--gold-lt); }
 .game-card .status.live{ color:#6fcf3a; }
 .game-card .overlay{ border-radius:14px; }
-/* كرت مدمج: 3 مربعات فوق بعض */
-/* صف فيه 3 كروت مدمجة جنب بعض */
+/* Combined card: 3 boxes stacked */
+/* Row with 3 combined cards side by side */
 .merged-card-row{
 display:flex; gap:12px;
 }
@@ -288,7 +316,7 @@ flex:none; width:100%; aspect-ratio:2/3;
 border:none; border-radius:11px;
 overflow:hidden;
 }
-/* صفحة ببجي الكاملة (نظام الطلب) */
+/* Full PUBG page (order system) */
 #pubgPage{
 background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);
 }
@@ -353,7 +381,7 @@ font-weight:900;
 font-family:'Bebas Neue', sans-serif; font-size:1.3rem; color:#6fcf3a;
 letter-spacing:.05em; font-weight:900; -webkit-text-stroke:.5px #6fcf3a;
 }
-/* ألوان السعر حسب هوية كل لعبة */
+/* Price colors based on each game's identity */
 #rbx-net-prices .egp, #rbx-gross-prices .egp{ color:#7fb3e0; -webkit-text-stroke:.5px #7fb3e0; }
 #psn-prices .egp{ color:#3d7bdb; -webkit-text-stroke:.5px #3d7bdb; }
 #steam-prices .egp{ color:#7fb3e0; -webkit-text-stroke:.5px #7fb3e0; }
@@ -397,7 +425,7 @@ font-size:1rem; padding:14px; border-radius:10px; border:none; cursor:pointer;
 transition:opacity .2s; width:100%;
 }
 .com-wa-btn:hover{ opacity:.88; }
-/* ══════════════ نظام كرت فيفا (منقول بالكامل) ══════════════ */
+/* ══════════════ FIFA card system (fully migrated) ══════════════ */
 #fifaPage{
 background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);
 }
@@ -414,7 +442,7 @@ padding:12px; border-radius:10px; cursor:pointer;
 transition:background .2s, border-color .2s, color .2s;
 }
 .ptoggle.active{ background:rgba(111,207,58,.15); border-color:#6fcf3a; color:#6fcf3a; }
-/* ══════════════ نظام كرت فري فاير (منقول بالكامل) ══════════════ */
+/* ══════════════ Free Fire card system (fully migrated) ══════════════ */
 #ffPage{
 background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);
 }
@@ -422,7 +450,7 @@ background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);
 background:rgba(0,180,216,.08); border:1px solid rgba(0,180,216,.3); border-radius:10px;
 padding:12px 16px; font-size:.88rem; color:#6bd4ff; margin-bottom:18px; line-height:1.6;
 }
-/* خانة اختيار الدولة */
+/* Country selection field */
 .country-select{
 display:flex; align-items:center; gap:8px;
 background:#1a1a1a; border:1.5px solid rgba(255,255,255,.12); border-radius:10px;
@@ -442,26 +470,26 @@ transition:background .15s;
 }
 .country-option:hover{ background:rgba(127,179,224,.15); }
 .country-option.selected{ color:var(--gold-lt); font-weight:800; }
-/* كروت نينتندو سادة من غير تلج */
+/* Nintendo cards plain, no frost effect */
 #nintendo-prices .pcard{ padding:10px 6px; border-color:rgba(224,127,127,.25); }
 #nintendo-prices .pcard::after{ display:none; }
 #nintendo-prices .pcard .sep::after{ content:none; }
 #nintendo-prices .pcard:not(.has-qty):hover{ border-color:#e0736f; }
-/* كروت استيم سادة من غير تلج */
+/* Steam cards plain, no frost effect */
 #steam-prices .pcard{ padding:10px 6px; }
 #steam-prices .pcard::after{ display:none; }
 #steam-prices .pcard .sep::after{ content:none; }
-/* كروت ماين كرافت سادة من غير تلج */
+/* Minecraft cards plain, no frost effect */
 #minecraft-prices .pcard{ padding:10px 6px; border-color:rgba(224,180,0,.25); }
 #minecraft-prices .pcard::after{ display:none; }
 #minecraft-prices .pcard .sep::after{ content:none; }
 #minecraft-prices .pcard:not(.has-qty):hover{ border-color:#e0b400; }
-/* كروت اكس بوكس سادة من غير تلج */
+/* Xbox cards plain, no frost effect */
 #xbox-prices .pcard{ padding:10px 6px; border-color:rgba(111,207,111,.25); }
 #xbox-prices .pcard::after{ display:none; }
 #xbox-prices .pcard .sep::after{ content:none; }
 #xbox-prices .pcard:not(.has-qty):hover{ border-color:#6fcf6f; }
-/* كروت ExitLag سادة من غير تلج */
+/* ExitLag cards plain, no frost effect */
 #exitlag-prices .pcard{ padding:10px 6px; }
 #exitlag-prices .pcard::after{ display:none; }
 #exitlag-prices .pcard .sep::after{ content:none; }
@@ -475,6 +503,160 @@ transition:background .15s;
 #fifa-prices-fc .pcard, #fifa-prices-fadha .pcard, #fifa-prices-offers .pcard{ border-color:rgba(111,207,58,.25); }
 #ff-id-prices .pcard, #ff-acc-prices .pcard{ border-color:rgba(0,180,216,.25); }
 #ff-id-prices .qty-btn, #ff-acc-prices .qty-btn{ border-color:rgba(0,180,216,.5); color:#00b4d8; background:rgba(0,180,216,.1); }
+
+/* ══════════════ Login page ══════════════ */
+#loginPage{
+--lp-sky-1:#020a16;
+--lp-sky-2:#0a2540;
+--lp-sky-3:#1a5c8a;
+--lp-glow:#7fb3e0;
+background:linear-gradient(180deg, var(--lp-sky-1) 0%, var(--lp-sky-2) 55%, var(--lp-sky-3) 100%);
+}
+#loginPage .rpage-header{ background:transparent; border-bottom:none; position:absolute; width:100%; }
+#loginPage .rpage-back{ border-color:rgba(255,255,255,.35); color:#fff; background:rgba(0,0,0,.15); }
+#loginPage .rpage-back:hover{ background:rgba(255,255,255,.15); }
+.login-scene{ position:absolute; inset:0; overflow:hidden; z-index:0; }
+.login-stars{ position:absolute; inset:0; }
+.login-star{
+position:absolute; border-radius:50%; background:#fff;
+animation:loginTwinkle ease-in-out infinite;
+}
+.login-sparkle{
+position:absolute; width:11px; height:11px;
+background:radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 72%);
+clip-path:polygon(50% 0%,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0% 50%,39% 39%);
+animation:loginTwinkle 3.2s ease-in-out infinite;
+}
+@keyframes loginTwinkle{ 0%,100%{opacity:.2;} 50%{opacity:1;} }
+.login-mountains-back, .login-mountains-front, .login-trees{
+position:absolute; left:0; width:100%; display:block;
+}
+.login-mountains-back{ bottom:14%; height:34%; }
+.login-mountains-front{ bottom:8%; height:30%; }
+.login-trees{ bottom:0; height:26%; }
+.login-stage{
+position:absolute; inset:0; z-index:2;
+display:flex; align-items:center; justify-content:center;
+padding:24px;
+}
+.login-card{
+width:min(100%, 340px);
+padding:26px 24px 24px;
+border-radius:20px;
+background:rgba(26,92,138,.18);
+border:1px solid rgba(255,255,255,.22);
+-webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+box-shadow:0 0 50px rgba(127,179,224,.25), 0 20px 40px rgba(2,10,22,.4);
+direction:ltr; text-align:left;
+font-family:'Cairo',sans-serif;
+}
+.login-title{
+text-align:center; font-weight:900; font-size:1.5rem; color:#fff;
+margin-bottom:22px; letter-spacing:.02em;
+}
+.login-field{ position:relative; margin-bottom:16px; }
+.login-field input{
+width:100%; padding:13px 42px 13px 18px;
+border-radius:30px; border:1px solid rgba(255,255,255,.35);
+background:rgba(255,255,255,.08); color:#fff;
+font-family:'Cairo',sans-serif; font-size:.88rem; font-weight:600;
+}
+.login-field input::placeholder{ color:rgba(255,255,255,.75); }
+.login-field input:focus{ outline:none; border-color:rgba(255,255,255,.7); }
+.login-field svg{
+position:absolute; right:16px; top:50%; transform:translateY(-50%);
+width:16px; height:16px; fill:none; stroke:rgba(255,255,255,.85);
+stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+pointer-events:none;
+}
+.login-submit{
+width:100%; padding:13px; border:none; border-radius:30px;
+background:#fff; color:#0a2540;
+font-family:'Cairo',sans-serif; font-weight:900; font-size:.92rem;
+cursor:pointer; margin-bottom:16px;
+}
+.login-submit:active{ transform:scale(.98); }
+.login-divider{
+display:flex; align-items:center; gap:10px;
+margin-bottom:16px; color:rgba(255,255,255,.6); font-size:.72rem;
+}
+.login-divider::before, .login-divider::after{
+content:''; flex:1; height:1px; background:rgba(255,255,255,.25);
+}
+.login-google{
+width:100%; padding:12px; border-radius:30px; border:none;
+background:#fff; color:#3c3c3c;
+font-family:'Cairo',sans-serif; font-weight:700; font-size:.85rem;
+cursor:pointer; margin-bottom:16px;
+display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.login-google:active{ transform:scale(.98); }
+.login-google svg{ width:18px; height:18px; flex-shrink:0; }
+.login-register{ text-align:center; font-size:.78rem; color:rgba(255,255,255,.85); }
+.login-register a{ color:#fff; font-weight:800; text-decoration:none; cursor:pointer; }
+.login-register a:hover{ text-decoration:underline; }
+/* ══════════════ Settings gate page ══════════════ */
+#settingsGatePage{ background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%); }
+.gate-body{ flex:1; display:flex; align-items:center; justify-content:center; padding:24px; }
+.gate-box{ width:min(100%, 320px); text-align:center; }
+.gate-icon{
+width:56px; height:56px; border-radius:50%; margin:0 auto 18px;
+background:rgba(127,179,224,.12); border:1px solid rgba(127,179,224,.3);
+display:flex; align-items:center; justify-content:center;
+}
+.gate-icon svg{ width:26px; height:26px; stroke:#7fb3e0; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.gate-text{
+font-family:'Cairo',sans-serif; font-weight:800; font-size:1rem; color:#eaf1fb;
+line-height:1.6; margin-bottom:24px;
+}
+.gate-login-btn{
+width:100%; padding:13px; border:none; border-radius:30px;
+background:linear-gradient(135deg,#1a5c8a,#7fb3e0); color:#fff;
+font-family:'Cairo',sans-serif; font-weight:900; font-size:.92rem; cursor:pointer;
+}
+.gate-login-btn:active{ transform:scale(.98); }
+/* ══════════════ Profile page ══════════════ */
+#profilePage{ background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%); }
+.profile-head{ display:flex; align-items:center; gap:14px; padding:6px 0 26px; }
+.profile-avatar{
+width:54px; height:54px; border-radius:50%; flex-shrink:0;
+background:linear-gradient(135deg,#1a5c8a,#7fb3e0);
+display:flex; align-items:center; justify-content:center;
+font-family:'Cairo',sans-serif; font-weight:900; font-size:1.3rem; color:#fff;
+}
+.profile-name{ font-family:'Cairo',sans-serif; font-weight:900; font-size:1.05rem; color:#eaf1fb; }
+.profile-email{ font-size:.78rem; color:var(--muted); margin-top:2px; }
+.profile-provider{
+display:inline-block; margin-top:6px; font-size:.68rem; font-weight:700; color:#7fb3e0;
+background:rgba(127,179,224,.12); border:1px solid rgba(127,179,224,.3);
+border-radius:20px; padding:3px 10px;
+}
+.profile-panel{ display:none; }
+.profile-panel.active{ display:block; }
+.order-row{ background:#111; border:1px solid rgba(127,179,224,.18); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+.order-row-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; gap:10px; }
+.order-game{ font-family:'Cairo',sans-serif; font-weight:800; font-size:.9rem; color:#eaf1fb; }
+.order-total{ font-family:'Cairo',sans-serif; font-weight:900; font-size:.88rem; color:#7fb3e0; white-space:nowrap; }
+.order-date{ font-size:.72rem; color:var(--muted); }
+.profile-empty{ text-align:center; color:var(--muted); font-size:.85rem; padding:40px 10px; }
+.profile-save-btn{
+background:linear-gradient(135deg,#1a5c8a,#2a6ea8); color:#fff; border:none; border-radius:10px;
+padding:12px; font-family:'Cairo',sans-serif; font-weight:800; font-size:.9rem;
+cursor:pointer; width:100%; margin-top:14px;
+}
+.profile-save-btn:active{ transform:scale(.98); }
+.profile-note{
+font-size:.78rem; color:var(--muted); line-height:1.7;
+background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+border-radius:10px; padding:12px 14px;
+}
+.profile-msg{ font-size:.78rem; margin-top:10px; min-height:16px; }
+.logout-btn{
+background:none; border:1px solid rgba(224,85,85,.5); color:#e05555; border-radius:10px;
+padding:11px; font-family:'Cairo',sans-serif; font-weight:800; font-size:.85rem;
+cursor:pointer; width:100%; margin-top:26px;
+}
+.logout-btn:active{ transform:scale(.98); }
 </style>
 </head>
 <body>
@@ -519,7 +701,7 @@ transition:background .15s;
 <button id="giftPrev" onclick="giftCardsGo(giftCardsIdx-1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10094;</button>
 <button id="giftNext" onclick="giftCardsGo(giftCardsIdx+1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10095;</button>
 </div>
-<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openCouponsPage()">المزيد</span>
+<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openCouponsPage()">More</span>
 </div>
 </div>
 <div style="padding:0 14px;">
@@ -534,7 +716,7 @@ transition:background .15s;
 <button onclick="mobileGamesGo(mobileGamesIdx-1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10094;</button>
 <button onclick="mobileGamesGo(mobileGamesIdx+1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10095;</button>
 </div>
-<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openMoreGames()">المزيد</span>
+<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openMoreGames()">More</span>
 </div>
 </div>
 <div style="padding:0 14px;">
@@ -549,7 +731,7 @@ transition:background .15s;
 <button onclick="pcGamesGo(pcGamesIdx-1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10094;</button>
 <button onclick="pcGamesGo(pcGamesIdx+1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(127,179,224,.5);color:#eaf1fb;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;outline:none;">&#10095;</button>
 </div>
-<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openComputerPage()">المزيد</span>
+<span style="font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;color:var(--gold-lt);cursor:pointer;" onclick="openComputerPage()">More</span>
 </div>
 </div>
 <div style="padding:0 14px 40px;">
@@ -560,10 +742,138 @@ transition:background .15s;
 </main>
 <div class="overlay" id="overlay"></div>
 <div class="sidebar" id="sidebar">
+<a id="sidebarAuthLink" onclick="openLoginPage()" style="display:flex;align-items:center;gap:12px;padding-bottom:18px;margin-bottom:8px;">
+<span class="sidebar-avatar" id="sidebarAvatar">Login</span>
+<span id="sidebarAuthLabel">Login</span>
+</a>
+<a onclick="openSettingsFlow()">Settings</a>
 <a onclick="openComputerPage()">PC Games</a>
 <a onclick="openMoreGames()">Mobile Games</a>
 <a onclick="openCouponsPage()">Gift Cards</a>
-<a href="https://wa.me/201015507896" target="_blank">الدعم</a>
+<a href="https://wa.me/201015507896" target="_blank">Support</a>
+</div>
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="rpage">
+<div class="rpage-header">
+<button class="rpage-back" onclick="closeLoginPage()">&#8594; Back</button>
+</div>
+<div class="login-scene">
+<div class="login-stars" id="loginStars"></div>
+<svg class="login-mountains-back" viewBox="0 0 1200 260" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<polygon points="0,260 0,150 90,105 190,160 300,90 420,155 540,80 660,150 780,95 900,160 1020,100 1120,155 1200,120 1200,260" fill="#1a5c8a"/>
+</svg>
+<svg class="login-mountains-front" viewBox="0 0 1200 230" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<polygon points="0,230 0,140 100,180 220,110 340,175 460,95 580,165 700,105 820,170 940,115 1060,175 1160,125 1200,150 1200,230" fill="#0a2540"/>
+</svg>
+<svg class="login-trees" viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern id="loginTreePattern" width="90" height="200" patternUnits="userSpaceOnUse">
+<rect x="41" y="150" width="8" height="50" fill="#020a16"/>
+<polygon points="10,150 80,150 45,95" fill="#020a16"/>
+<polygon points="16,110 74,110 45,58" fill="#020a16"/>
+<polygon points="22,72 68,72 45,28" fill="#020a16"/>
+</pattern>
+</defs>
+<rect width="1200" height="200" fill="url(#loginTreePattern)"/>
+</svg>
+</div>
+<div class="login-stage">
+<div class="login-card" id="loginCardLogin">
+<div class="login-title">Login</div>
+<div class="login-field">
+<input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg>
+</div>
+<div class="login-field">
+<input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+</div>
+<button class="login-submit" onclick="submitLogin()">Login</button>
+<div class="login-divider"><span>or</span></div>
+<button class="login-google" onclick="loginWithGoogle()">
+<svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20.4H24v7.2h11.3C33.7 32 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l5.4-5.4C33.4 7.3 28.9 5.5 24 5.5 13.8 5.5 5.5 13.8 5.5 24S13.8 42.5 24 42.5 42.5 34.2 42.5 24c0-1.2-.1-2.4-.4-3.5Z"/><path fill="#FF3D00" d="M8.3 14.7l5.9 4.3C15.8 15.6 19.6 13 24 13c2.8 0 5.3 1 7.3 2.7l5.4-5.4C33.4 7.3 28.9 5.5 24 5.5c-7 0-13 4-15.7 9.2Z"/><path fill="#4CAF50" d="M24 42.5c4.8 0 9.2-1.8 12.5-4.9l-5.8-4.9C28.9 34.1 26.6 35 24 35c-5.3 0-9.7-3.4-11.3-8l-6 4.6c3 6 9.4 10.9 17.3 10.9Z"/><path fill="#1976D2" d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.3-2.3 4.3-4.3 5.7l5.8 4.9C40.5 35.5 42.5 30.2 42.5 24c0-1.2-.1-2.4-.4-3.5Z"/></svg>
+Continue with Google
+</button>
+<div class="login-register">Don't have an account? <a onclick="showRegisterCard()">Create Account</a></div>
+</div>
+<div class="login-card" id="loginCardRegister" style="display:none;">
+<div class="login-title">Create Account</div>
+<div class="login-field">
+<input type="text" id="registerNickname" placeholder="Nickname" autocomplete="nickname">
+<svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/><path d="M4 20.5c1.4-3.6 4.6-5.5 8-5.5s6.6 1.9 8 5.5"/></svg>
+</div>
+<div class="login-field">
+<input type="email" id="registerEmail" placeholder="Email" autocomplete="email">
+<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg>
+</div>
+<div class="login-field">
+<input type="password" id="registerPassword" placeholder="Password" autocomplete="new-password">
+<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+</div>
+<button class="login-submit" onclick="submitRegister()">Create Account</button>
+<div class="login-register">Already have an account? <a onclick="showLoginCard()">Login</a></div>
+</div>
+</div>
+</div>
+<!-- SETTINGS GATE PAGE -->
+<div id="settingsGatePage" class="rpage">
+<div class="rpage-header" style="border-bottom-color:rgba(127,179,224,.3);">
+<button class="rpage-back" style="border-color:rgba(127,179,224,.5);color:var(--gold-lt);" onclick="closeSettingsGate()">&#8594; Back</button>
+</div>
+<div class="gate-body">
+<div class="gate-box">
+<div class="gate-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+<div class="gate-text">Log in to see your settings and orders</div>
+<button class="gate-login-btn" onclick="goToLoginFromGate()">Login</button>
+</div>
+</div>
+</div>
+<!-- PROFILE PAGE -->
+<div id="profilePage" class="rpage">
+<div class="rpage-header" style="border-bottom-color:rgba(127,179,224,.3);">
+<button class="rpage-back" style="border-color:rgba(127,179,224,.5);color:var(--gold-lt);" onclick="closeProfilePage()">&#8594; Back</button>
+<div class="rpage-title">
+<span class="rpage-logo" style="color:var(--gold-lt);">My Account</span>
+</div>
+</div>
+<div class="rpage-panels">
+<div class="profile-head">
+<div class="profile-avatar" id="profileAvatar">?</div>
+<div>
+<div class="profile-name" id="profileName">—</div>
+<div class="profile-email" id="profileEmail">—</div>
+<span class="profile-provider" id="profileProvider">Email account</span>
+</div>
+</div>
+<div class="rpage-tabs" style="margin:0 -5% 24px;padding:0 5%;border-bottom-color:rgba(127,179,224,.2);">
+<button class="rptab active" id="profile-tab-orders" style="color:var(--gold-lt);border-bottom-color:var(--gold-lt);" onclick="switchProfileTab('orders')">My Orders</button>
+<button class="rptab" id="profile-tab-name" onclick="switchProfileTab('name')">Nickname</button>
+<button class="rptab" id="profile-tab-pass" onclick="switchProfileTab('pass')">Password</button>
+</div>
+<div class="profile-panel active" id="profile-panel-orders">
+<div id="profileOrdersList"><div class="profile-empty">No orders yet</div></div>
+</div>
+<div class="profile-panel" id="profile-panel-name">
+<div class="ofield">
+<label class="olabel">Nickname</label>
+<input class="oinput" id="profileNicknameInput" type="text" placeholder="Your nickname" style="border-color:rgba(127,179,224,.4);">
+</div>
+<button class="profile-save-btn" onclick="saveProfileNickname()">Save Nickname</button>
+<div class="profile-msg" id="profileNameMsg"></div>
+</div>
+<div class="profile-panel" id="profile-panel-pass">
+<div id="profilePassEditable">
+<div class="ofield">
+<label class="olabel">New Password</label>
+<input class="oinput" id="profileNewPassInput" type="password" placeholder="Enter new password" style="border-color:rgba(127,179,224,.4);">
+</div>
+<button class="profile-save-btn" onclick="saveProfilePassword()">Save Password</button>
+</div>
+<div class="profile-note" id="profilePassLockedMsg" style="display:none;">You can't change your password because you're signed in with Google.</div>
+<div class="profile-msg" id="profilePassMsg"></div>
+</div>
+<button class="logout-btn" onclick="logoutUser()">Log Out</button>
+</div>
 </div>
 <!-- MORE GAMES PAGE -->
 <div id="moreGamesPage" class="rpage" style="background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 100%);">
@@ -616,48 +926,48 @@ transition:background .15s;
 </div>
 <!-- TABS -->
 <div class="rpage-tabs" style="border-bottom-color:rgba(127,179,224,.2);">
-<button class="rptab active" id="rbx-tab-map" onclick="switchRobloxTab('map')" style="color:var(--gold-lt);border-bottom-color:var(--gold-lt);">شحن Game Pass</button>
-<button class="rptab" id="rbx-tab-designs" onclick="switchRobloxTab('designs')">تصاميمنا</button>
+<button class="rptab active" id="rbx-tab-map" onclick="switchRobloxTab('map')" style="color:var(--gold-lt);border-bottom-color:var(--gold-lt);">Charge Game Pass</button>
+<button class="rptab" id="rbx-tab-designs" onclick="switchRobloxTab('designs')">Our Designs</button>
 </div>
 <div class="rpage-panels">
 <div id="rbx-panel-map" class="rpanel active">
-<div class="rpanel-title" style="margin-bottom:16px;">شحن Game Pass</div>
+<div class="rpanel-title" style="margin-bottom:16px;">Charge Game Pass</div>
 <div class="ofield" style="margin-bottom:18px;">
-<label class="olabel" style="color:var(--gold-lt);">رابط الـ Game Pass <span class="req">*</span></label>
-<input class="oinput" id="rbx-gamepass-link" type="text" placeholder="حط رابط الـ Game Pass هنا" style="border-color:rgba(127,179,224,.4);" />
+<label class="olabel" style="color:var(--gold-lt);">Game Pass Link <span class="req">*</span></label>
+<input class="oinput" id="rbx-gamepass-link" type="text" placeholder="Paste the Game Pass link here" style="border-color:rgba(127,179,224,.4);" />
 </div>
 <div style="display:flex; gap:12px; margin-bottom:16px;">
-<button class="rbx-type-btn active" id="rbx-type-net" onclick="switchRobloxType('net')">صافي</button>
-<button class="rbx-type-btn" id="rbx-type-gross" onclick="switchRobloxType('gross')">غير صافي</button>
+<button class="rbx-type-btn active" id="rbx-type-net" onclick="switchRobloxType('net')">Net</button>
+<button class="rbx-type-btn" id="rbx-type-gross" onclick="switchRobloxType('gross')">Gross</button>
 <button class="rbx-type-btn" onclick="openRbxCalc()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.62rem;line-height:1.1;">
-<span style="font-size:1.1rem;">🧮</span>آلة حاسبة
+<span style="font-size:1.1rem;">🧮</span>Calculator
 </button>
 </div>
 <div class="price-grid" id="rbx-net-prices">
-<div class="pcard" data-rbx="1,000" data-price="257" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">1,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">257 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="2,000" data-price="514" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">2,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">514 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="3,000" data-price="771" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">3,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">771 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="4,000" data-price="1028" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">4,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,028 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="5,000" data-price="1285" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">5,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,285 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="6,000" data-price="1542" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">6,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,542 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="7,000" data-price="1799" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">7,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,799 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="8,000" data-price="2056" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">8,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">2,056 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="9,000" data-price="2313" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">9,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">2,313 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="10,000" data-price="2570" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">10,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">2,570 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="1,000" data-price="344" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">1,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">344 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="2,000" data-price="688" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">2,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">688 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="3,000" data-price="1032" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">3,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,032 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="4,000" data-price="1376" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">4,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,376 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="5,000" data-price="1720" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">5,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,720 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="6,000" data-price="2064" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">6,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">2,064 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="7,000" data-price="2408" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">7,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">2,408 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="8,000" data-price="2752" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">8,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">2,752 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="9,000" data-price="3096" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">9,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">3,096 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="10,000" data-price="3440" onclick="toggleRobloxAmt(this,'net')"><span class="rob-val">10,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">3,440 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
 </div>
 <div class="price-grid" id="rbx-gross-prices" style="display:none;">
-<div class="pcard" data-rbx="1,000" data-price="180" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">1,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">180 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="2,000" data-price="360" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">2,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">360 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="3,000" data-price="540" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">3,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">540 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="4,000" data-price="720" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">4,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">720 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="5,000" data-price="900" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">5,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">900 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="6,000" data-price="1080" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">6,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,080 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="7,000" data-price="1260" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">7,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,260 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="8,000" data-price="1440" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">8,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,440 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="9,000" data-price="1620" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">9,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,620 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-rbx="10,000" data-price="1800" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">10,000 <span class="uc-tag">روبوكس</span></span><span class="sep"></span><span class="egp">1,800 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="1,000" data-price="240" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">1,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">240 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="2,000" data-price="480" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">2,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">480 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="3,000" data-price="720" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">3,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">720 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="4,000" data-price="960" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">4,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">960 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="5,000" data-price="1200" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">5,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,200 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="6,000" data-price="1440" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">6,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,440 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="7,000" data-price="1680" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">7,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,680 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="8,000" data-price="1920" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">8,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">1,920 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="9,000" data-price="2160" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">9,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">2,160 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-rbx="10,000" data-price="2400" onclick="toggleRobloxAmt(this,'gross')"><span class="rob-val">10,000 <span class="uc-tag">Robux</span></span><span class="sep"></span><span class="egp">2,400 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeRobloxQtyCard(this,1)">+</button></div></div>
 </div>
-<!-- فاتورة وطلب زي باقي الألعاب -->
+<!-- Invoice and order like the other games -->
 <div id="rbx-summary" style="margin-top:14px; background:#0a2540; border:1px solid rgba(127,179,224,.3); border-radius:12px; padding:14px;">
 <div style="font-size:.85rem;color:#bbb;margin-bottom:4px;">🛒 Your Invoice:</div>
 <div id="rbx-sum-rows"></div>
@@ -671,8 +981,8 @@ transition:background .15s;
 <div class="oerror" id="rbx-error" style="margin-top:10px;"></div>
 </div>
 <div id="rbx-panel-designs" class="rpanel">
-<div class="rpanel-title">تصاميمنا</div>
-<div style="text-align:center;padding:40px 0;color:var(--gold-lt);font-family:'Cairo',sans-serif;font-weight:700;">🔜 قريباً</div>
+<div class="rpanel-title">Our Designs</div>
+<div style="text-align:center;padding:40px 0;color:var(--gold-lt);font-family:'Cairo',sans-serif;font-weight:700;">🔜 Coming soon</div>
 </div>
 </div>
 </div>
@@ -680,19 +990,19 @@ transition:background .15s;
 <div id="rbxCalcOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:3000; align-items:center; justify-content:center; padding:20px;">
 <div style="background:#0a1a2e; border:1px solid rgba(127,179,224,.4); border-radius:16px; padding:20px; width:100%; max-width:340px; font-family:'Cairo',sans-serif;">
 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-<span style="font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--gold-lt); letter-spacing:.04em;">🧮 آلة حاسبة</span>
+<span style="font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--gold-lt); letter-spacing:.04em;">🧮 Calculator</span>
 <button onclick="closeRbxCalc()" style="background:none;border:none;color:#eaf1fb;font-size:1.3rem;cursor:pointer;line-height:1;">&times;</button>
 </div>
 <div class="ofield" style="margin-bottom:14px;">
-<label class="olabel" style="color:var(--gold-lt);">اكتب الرقم</label>
+<label class="olabel" style="color:var(--gold-lt);">Enter the number</label>
 <input class="oinput" id="rbx-calc-input" type="text" inputmode="numeric" pattern="[0-9]*"
-placeholder="مثال: 1000"
+placeholder="Example: 1000"
 oninput="this.value=this.value.replace(/[^0-9]/g,''); updateRbxCalc();"
 style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" />
 </div>
 <div style="display:flex; gap:10px; margin-bottom:16px;">
-<button class="rbx-calc-type-btn active" id="rbx-calc-net" onclick="setRbxCalcType('net')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(127,179,224,.4);background:rgba(127,179,224,.15);color:var(--gold-lt);font-weight:700;cursor:pointer;">صافي</button>
-<button class="rbx-calc-type-btn" id="rbx-calc-gross" onclick="setRbxCalcType('gross')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(127,179,224,.25);background:transparent;color:#eaf1fb;font-weight:700;cursor:pointer;">غير صافي</button>
+<button class="rbx-calc-type-btn active" id="rbx-calc-net" onclick="setRbxCalcType('net')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(127,179,224,.4);background:rgba(127,179,224,.15);color:var(--gold-lt);font-weight:700;cursor:pointer;">Net</button>
+<button class="rbx-calc-type-btn" id="rbx-calc-gross" onclick="setRbxCalcType('gross')" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(127,179,224,.25);background:transparent;color:#eaf1fb;font-weight:700;cursor:pointer;">Gross</button>
 </div>
 <div id="rbx-calc-result" style="text-align:center; font-size:.95rem; color:#eaf1fb; min-height:24px; line-height:1.6;"></div>
 </div>
@@ -1493,15 +1803,15 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 </div>
 </div>
 <div class="rpage-panels">
-<!-- ID FIELD — دايماً ظاهر -->
+<!-- ID FIELD — always visible -->
 <div class="ofield" style="margin-bottom:24px;">
-<label class="olabel" style="font-size:.95rem;color:var(--gold-lt);">ID اللاعب <span class="req">*</span></label>
-<input class="oinput" id="pubg-id" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="اكتب الـ ID هنا (أرقام فقط)" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="border-color:rgba(26,92,138,.35);text-align:center;font-size:1.05rem;" />
+<label class="olabel" style="font-size:.95rem;color:var(--gold-lt);">Player ID <span class="req">*</span></label>
+<input class="oinput" id="pubg-id" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Enter the ID here (numbers only)" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="border-color:rgba(26,92,138,.35);text-align:center;font-size:1.05rem;" />
 </div>
 <!-- TWO TABS -->
 <div class="rpage-tabs" style="margin: 0 -5% 24px;padding: 0 5%;">
-<button class="rptab active" id="pubg-tab-shadawat" onclick="switchPubgTab('shadawat')" style="color:var(--gold);border-bottom-color:var(--gold);">شدات</button>
-<button class="rptab" id="pubg-tab-orod" onclick="switchPubgTab('orod')">عروض</button>
+<button class="rptab active" id="pubg-tab-shadawat" onclick="switchPubgTab('shadawat')" style="color:var(--gold);border-bottom-color:var(--gold);">UC</button>
+<button class="rptab" id="pubg-tab-orod" onclick="switchPubgTab('orod')">Deals</button>
 </div>
 <!-- SHADAWAT SECTION -->
 <div id="pubg-section-shadawat">
@@ -1518,53 +1828,53 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 <div id="pubg-section-orod" style="display:none;">
 <div class="price-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="حزمة الشراء الأول (170UC + 900G)" data-price="70" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.78rem;line-height:1.3;">حزمة الشراء الأول</span>
+<span class="rob-val" style="font-size:.78rem;line-height:1.3;">First Purchase Pack</span>
 <span class="rob" style="font-size:.68rem;color:#aaa;">170UC + 900G</span>
 <span class="sep"></span><span class="egp">70 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="موارد ترقية الأسلحة (180UC + 9 ماتريال صغيره)" data-price="165" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.72rem;line-height:1.3;">موارد ترقية الأسلحة</span>
+<span class="rob-val" style="font-size:.72rem;line-height:1.3;">Weapon Upgrade Materials</span>
 <span class="rob" style="font-size:.68rem;">180UC</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">9ماتريال صغيره</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">9 Small Materials</span>
 <span class="sep"></span><span class="egp">165 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="حزمة الشعار الخرافي (300UC + 79جوهرة صغيره)" data-price="255" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.72rem;line-height:1.3;">حزمة الشعار الخرافي</span>
+<span class="rob-val" style="font-size:.72rem;line-height:1.3;">Mythic Emblem Pack</span>
 <span class="rob" style="font-size:.68rem;">300UC</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">79جوهرة صغيره</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">79 Small Gems</span>
 <span class="sep"></span><span class="egp">255 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="البرايم الصغير (+60UC)" data-price="75" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.78rem;line-height:1.3;">البرايم الصغير</span>
+<span class="rob-val" style="font-size:.78rem;line-height:1.3;">Small Prime</span>
 <span class="rob" style="font-size:.68rem;color:#aaa;">+60UC</span>
 <span class="sep"></span><span class="egp">75 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;grid-column:span 2;" data-uc="البرايم الكبير (+660UC)" data-price="520" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.78rem;line-height:1.3;">البرايم الكبير</span>
+<span class="rob-val" style="font-size:.78rem;line-height:1.3;">Large Prime</span>
 <span class="rob" style="font-size:.68rem;color:#aaa;">+660UC</span>
 <span class="sep"></span><span class="egp">520 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="الرويال باس 1~50 (حزمة شحن نص الرويال باس)" data-price="300" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.72rem;line-height:1.3;">رويال باس 1~50</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">نص الرويال باس</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">50 شدة</span>
+<span class="rob-val" style="font-size:.72rem;line-height:1.3;">Royale Pass 1~50</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">Half Royale Pass</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">50 UC</span>
 <span class="sep"></span><span class="egp">300 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="الرويال باس 1~100 (حزمة شحن الرويال باس كامل)" data-price="580" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.72rem;line-height:1.3;">رويال باس 1~100</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">الرويال باس كامل</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">100 شدة</span>
+<span class="rob-val" style="font-size:.72rem;line-height:1.3;">Royale Pass 1~100</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">Full Royale Pass</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">100 UC</span>
 <span class="sep"></span><span class="egp">580 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" style="padding:14px 10px;grid-column:span 2;" data-uc="الرويال باس بلس (حزمة شحن الرويال باس بلس)" data-price="1410" onclick="togglePubgAmt(this,'orod')">
-<span class="rob-val" style="font-size:.78rem;line-height:1.3;">رويال باس بلس</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">240 شدة • إطار صورة RP</span>
-<span class="rob" style="font-size:.65rem;color:#aaa;">24 لفل RP • رقصة النصر • تمثال</span>
+<span class="rob-val" style="font-size:.78rem;line-height:1.3;">Royale Pass Plus</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">240 UC • RP Avatar Frame</span>
+<span class="rob" style="font-size:.65rem;color:#aaa;">24 RP Levels • Victory Dance • Statue</span>
 <span class="sep"></span><span class="egp">1410 EGP</span>
 <div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 </div>
 </div>
-<!-- SHARED SUMMARY (شدات + عروض معاً) -->
+<!-- SHARED SUMMARY (UC + Deals together) -->
 <div id="pubg-summary" style="margin-top:14px; background:#0a2540; border:1px solid rgba(26,92,138,.3); border-radius:12px; padding:14px;">
 <div style="font-size:.85rem;color:#bbb;margin-bottom:4px;">🛒 Your Invoice:</div>
 <div id="pubg-sum-rows"></div>
@@ -1587,21 +1897,21 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 </div>
 </div>
 <div class="rpage-panels">
-<!-- EMAIL FIELD — دايماً ظاهر -->
+<!-- EMAIL FIELD — always visible -->
 <div class="ofield" style="margin-bottom:24px;">
-<label class="olabel" style="font-size:.95rem;color:#6fcf3a;">الإيميل <span class="req">*</span></label>
-<input class="oinput" id="fifa-user" type="text" placeholder="اكتب الإيميل هنا" style="border-color:rgba(111,207,58,.35);text-align:center;font-size:1.05rem;" />
+<label class="olabel" style="font-size:.95rem;color:#6fcf3a;">Email <span class="req">*</span></label>
+<input class="oinput" id="fifa-user" type="text" placeholder="Enter your email here" style="border-color:rgba(111,207,58,.35);text-align:center;font-size:1.05rem;" />
 </div>
 <!-- TWO TABS -->
 <div class="rpage-tabs" style="margin: 0 -5% 24px;padding: 0 5%;">
-<button class="rptab active" id="fifa-tab-coins" style="color:#6fcf3a;border-bottom-color:#6fcf3a;" onclick="switchFifaTab('coins')">شحن FC/فضى</button>
-<button class="rptab" id="fifa-tab-offers" onclick="switchFifaTab('offers')">عروض</button>
+<button class="rptab active" id="fifa-tab-coins" style="color:#6fcf3a;border-bottom-color:#6fcf3a;" onclick="switchFifaTab('coins')">Charge FC/Silver</button>
+<button class="rptab" id="fifa-tab-offers" onclick="switchFifaTab('offers')">Deals</button>
 </div>
 <!-- COINS PANEL -->
 <div id="fifa-panel-coins" class="rpanel active">
 <div class="price-toggle" style="margin-top:4px;">
 <button class="ptoggle active" id="fifa-btn-fc" onclick="switchFifaGrid('fc')">FC</button>
-<button class="ptoggle" id="fifa-btn-fadha" onclick="switchFifaGrid('fadha')">فضى</button>
+<button class="ptoggle" id="fifa-btn-fadha" onclick="switchFifaGrid('fadha')">Silver</button>
 </div>
 <div class="price-grid" id="fifa-prices-fc">
 <div class="pcard" data-amt="40" data-price="35" data-type="FC" onclick="addFifaItem(this)"><span class="rob-val">40</span><span class="rob"> FC</span><span class="sep"></span><span class="egp">35 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
@@ -1611,19 +1921,19 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 <div class="pcard" style="grid-column:span 2;" data-amt="2000" data-price="1050" data-type="FC" onclick="addFifaItem(this)"><span class="rob-val">2000</span><span class="rob"> FC</span><span class="sep"></span><span class="egp">1050 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
 </div>
 <div class="price-grid" id="fifa-prices-fadha" style="display:none;">
-<div class="pcard" data-amt="39" data-price="35" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">39</span><span class="rob"> فضى</span><span class="sep"></span><span class="egp">35 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-amt="99" data-price="70" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">99</span><span class="rob"> فضى</span><span class="sep"></span><span class="egp">70 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-amt="499" data-price="290" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">499</span><span class="rob"> فضى</span><span class="sep"></span><span class="egp">290 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-amt="999" data-price="550" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">999</span><span class="rob"> فضى</span><span class="sep"></span><span class="egp">550 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
-<div class="pcard" style="grid-column:span 2;" data-amt="1999" data-price="1050" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">1999</span><span class="rob"> فضى</span><span class="sep"></span><span class="egp">1050 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-amt="39" data-price="35" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">39</span><span class="rob"> Silver</span><span class="sep"></span><span class="egp">35 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-amt="99" data-price="70" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">99</span><span class="rob"> Silver</span><span class="sep"></span><span class="egp">70 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-amt="499" data-price="290" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">499</span><span class="rob"> Silver</span><span class="sep"></span><span class="egp">290 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-amt="999" data-price="550" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">999</span><span class="rob"> Silver</span><span class="sep"></span><span class="egp">550 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
+<div class="pcard" style="grid-column:span 2;" data-amt="1999" data-price="1050" data-type="فضى" onclick="addFifaItem(this)"><span class="rob-val">1999</span><span class="rob"> Silver</span><span class="sep"></span><span class="egp">1050 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFifaQtyCard(this,1)">+</button></div></div>
 </div>
 </div>
 <!-- OFFERS PANEL -->
 <div id="fifa-panel-offers" class="rpanel">
-<div class="rpanel-title">عروض فيفا</div>
+<div class="rpanel-title">FIFA Deals</div>
 <div class="price-grid" id="fifa-prices-offers" style="grid-template-columns:1fr;gap:12px;margin-top:8px;">
 <div class="pcard" style="padding:12px 10px;" data-amt="0" data-price="260" data-type="نجم" data-label="تصريح النجم" onclick="addFifaItem(this)">
-<span class="rob-val" style="font-size:.9rem;line-height:1.4;font-weight:900;">تصريح النجم</span>
+<span class="rob-val" style="font-size:.9rem;line-height:1.4;font-weight:900;">Star Pass</span>
 <span class="sep"></span>
 <span class="egp" style="color:#6fcf3a;font-weight:900;">260 EGP</span>
 <span class="sep" style="font-size:.78rem;opacity:.7;"></span>
@@ -1656,30 +1966,30 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 </div>
 <!-- TABS -->
 <div class="rpage-tabs" style="border-bottom-color:rgba(0,180,216,.2);">
-<button class="rptab active" id="ff-tab-id" onclick="switchFFTab('id')" style="color:#00b4d8;border-bottom-color:#00b4d8;">شحن بالـ ID</button>
-<button class="rptab" id="ff-tab-acc" onclick="switchFFTab('acc')">داخل الحساب</button>
+<button class="rptab active" id="ff-tab-id" onclick="switchFFTab('id')" style="color:#00b4d8;border-bottom-color:#00b4d8;">Charge by ID</button>
+<button class="rptab" id="ff-tab-acc" onclick="switchFFTab('acc')">Inside Account</button>
 </div>
 <div class="rpage-panels">
-<!-- TAB 1: شحن بالـ ID -->
+<!-- TAB 1: charge by ID -->
 <div id="ff-panel-id" class="rpanel active">
-<div class="rpanel-title">شحن بالـ ID</div>
+<div class="rpanel-title">Charge by ID</div>
 <div class="ofield" style="margin-bottom:20px;">
-<label class="olabel" style="color:#00b4d8;">ID اللاعب <span class="req">*</span></label>
+<label class="olabel" style="color:#00b4d8;">Player ID <span class="req">*</span></label>
 <input class="oinput" id="ff-id" type="text" inputmode="numeric" pattern="[0-9]*"
-placeholder="اكتب الـ ID هنا (أرقام فقط)"
+placeholder="Enter the ID here (numbers only)"
 oninput="this.value=this.value.replace(/[^0-9]/g,'')"
 style="border-color:rgba(0,180,216,.4);text-align:center;font-size:1.05rem;" />
 </div>
 <div class="price-grid" id="ff-id-prices">
-<div class="pcard" data-diamond="100"    data-price="60"   data-label="100 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">100</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">60 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="210"    data-price="120"  data-label="210 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">210</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="530"    data-price="270"  data-label="530 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">530</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">270 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="1080"   data-price="550"  data-label="1080 جوهرة" onclick="toggleFFIdAmt(this)"><span class="rob-val">1080</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">550 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="2200"   data-price="1100" data-label="2200 جوهرة" onclick="toggleFFIdAmt(this)"><span class="rob-val">2200</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">1100 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="أسبوعي" data-price="150"  data-label="اشتراك أسبوعي" onclick="toggleFFIdAmt(this)"><span class="rob-val">📅 أسبوعي</span><span class="sep"></span><span class="egp">150 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
-<div class="pcard" style="grid-column:span 2;" data-diamond="شهري"    data-price="610"  data-label="اشتراك شهري"  onclick="toggleFFIdAmt(this)"><span class="rob-val">📅 شهري</span><span class="sep"></span><span class="egp">610 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="100"    data-price="60"   data-label="100 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">100</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">60 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="210"    data-price="120"  data-label="210 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">210</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="530"    data-price="270"  data-label="530 جوهرة"  onclick="toggleFFIdAmt(this)"><span class="rob-val">530</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">270 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="1080"   data-price="550"  data-label="1080 جوهرة" onclick="toggleFFIdAmt(this)"><span class="rob-val">1080</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">550 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="2200"   data-price="1100" data-label="2200 جوهرة" onclick="toggleFFIdAmt(this)"><span class="rob-val">2200</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">1100 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="أسبوعي" data-price="150"  data-label="اشتراك أسبوعي" onclick="toggleFFIdAmt(this)"><span class="rob-val">📅 Weekly</span><span class="sep"></span><span class="egp">150 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
+<div class="pcard" style="grid-column:span 2;" data-diamond="شهري"    data-price="610"  data-label="اشتراك شهري"  onclick="toggleFFIdAmt(this)"><span class="rob-val">📅 Monthly</span><span class="sep"></span><span class="egp">610 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFIdQtyCard(this,1)">+</button></div></div>
 </div>
-<!-- ملخص فري فاير ID -->
+<!-- Free Fire ID summary -->
 <div id="ff-id-summary" style="margin-top:14px; background:#001a26; border:1px solid rgba(0,180,216,.3); border-radius:12px; padding:14px;">
 <div style="font-size:.85rem;color:#bbb;margin-bottom:4px;">🛒 Your Invoice:</div>
 <div id="ff-id-sum-rows"></div>
@@ -1692,33 +2002,33 @@ style="border-color:rgba(0,180,216,.4);text-align:center;font-size:1.05rem;" />
 </div>
 <div class="oerror" id="ff-id-error" style="margin-top:10px;"></div>
 </div>
-<!-- TAB 2: داخل الحساب -->
+<!-- TAB 2: inside account -->
 <div id="ff-panel-acc" class="rpanel">
-<div class="rpanel-title">داخل الحساب</div>
+<div class="rpanel-title">Inside Account</div>
 <div class="ofield" style="margin-bottom:14px;">
-<label class="olabel" style="color:#00b4d8;">الإيميل <span class="req">*</span></label>
-<input class="oinput" id="ff-acc-user" type="text" placeholder="الإيميل" style="border-color:rgba(0,180,216,.35);" />
+<label class="olabel" style="color:#00b4d8;">Email <span class="req">*</span></label>
+<input class="oinput" id="ff-acc-user" type="text" placeholder="Email" style="border-color:rgba(0,180,216,.35);" />
 </div>
 <div class="ofield" style="margin-bottom:14px;">
-<label class="olabel" style="color:#00b4d8;">الباسورد <span class="req">*</span></label>
-<input class="oinput" id="ff-acc-pass" type="password" placeholder="اكتب الباسورد" style="border-color:rgba(0,180,216,.35);" />
+<label class="olabel" style="color:#00b4d8;">Password <span class="req">*</span></label>
+<input class="oinput" id="ff-acc-pass" type="password" placeholder="Enter password" style="border-color:rgba(0,180,216,.35);" />
 </div>
 <div class="ofield" style="margin-bottom:20px;">
-<label class="olabel" style="color:#00b4d8;">نوع الربط <span class="req">*</span></label>
-<input class="oinput" id="ff-acc-link" type="text" placeholder="مثال: جوجل / فيسبوك / تويتر" style="border-color:rgba(0,180,216,.35);" />
+<label class="olabel" style="color:#00b4d8;">Link Type <span class="req">*</span></label>
+<input class="oinput" id="ff-acc-link" type="text" placeholder="Example: Google / Facebook / Twitter" style="border-color:rgba(0,180,216,.35);" />
 </div>
 <div class="price-grid" id="ff-acc-prices">
-<div class="pcard" data-diamond="100"    data-price="60"   data-label="100 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">100</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">60 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="200"    data-price="120"  data-label="200 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">200</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="310"    data-price="160"  data-label="310 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">310</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">160 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="520"    data-price="250"  data-label="520 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">520</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">250 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="1060"   data-price="500"  data-label="1060 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">1060</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">500 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="2180"   data-price="950"  data-label="2180 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">2180</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">950 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="5600"   data-price="2400" data-label="5600 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">5600</span><span class="rob"> جوهرة</span><span class="sep"></span><span class="egp">2400 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="أسبوعي" data-price="120"  data-label="اشتراك أسبوعي" onclick="toggleFFAccAmt(this)"><span class="rob-val">📅 أسبوعي</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
-<div class="pcard" data-diamond="شهري"   data-price="430"  data-label="اشتراك شهري"  onclick="toggleFFAccAmt(this)"><span class="rob-val">📅 شهري</span><span class="sep"></span><span class="egp">430 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="100"    data-price="60"   data-label="100 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">100</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">60 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="200"    data-price="120"  data-label="200 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">200</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="310"    data-price="160"  data-label="310 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">310</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">160 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="520"    data-price="250"  data-label="520 جوهرة"  onclick="toggleFFAccAmt(this)"><span class="rob-val">520</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">250 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="1060"   data-price="500"  data-label="1060 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">1060</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">500 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="2180"   data-price="950"  data-label="2180 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">2180</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">950 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="5600"   data-price="2400" data-label="5600 جوهرة" onclick="toggleFFAccAmt(this)"><span class="rob-val">5600</span><span class="rob"> Gems</span><span class="sep"></span><span class="egp">2400 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="أسبوعي" data-price="120"  data-label="اشتراك أسبوعي" onclick="toggleFFAccAmt(this)"><span class="rob-val">📅 Weekly</span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
+<div class="pcard" data-diamond="شهري"   data-price="430"  data-label="اشتراك شهري"  onclick="toggleFFAccAmt(this)"><span class="rob-val">📅 Monthly</span><span class="sep"></span><span class="egp">430 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,-1)">−</button><span class="qty-num" style="color:#00b4d8;">0</span><button class="qty-btn" onclick="event.stopPropagation();changeFFAccQtyCard(this,1)">+</button></div></div>
 </div>
-<!-- ملخص فري فاير حساب -->
+<!-- Free Fire account summary -->
 <div id="ff-acc-summary" style="margin-top:14px; background:#001a26; border:1px solid rgba(0,180,216,.3); border-radius:12px; padding:14px;">
 <div style="font-size:.85rem;color:#bbb;margin-bottom:4px;">🛒 Your Invoice:</div>
 <div id="ff-acc-sum-rows"></div>
@@ -1734,7 +2044,7 @@ style="border-color:rgba(0,180,216,.4);text-align:center;font-size:1.05rem;" />
 </div>
 </div>
 <script>
-// ══════════════ كاروسيل Gift Cards ══════════════
+// ══════════════ Gift Cards Carousel ══════════════
 const giftCardsSets = [
 [
 {name:'Steam', img:'https://raw.githubusercontent.com/King-cat11/Salam/main/IMG-20260706-WA0301.jpg', color:'#66c0f4', fn:'openSteamPage()'},
@@ -1799,7 +2109,7 @@ clearInterval(giftCardsTimer);
 giftCardsTimer = setInterval(() => giftCardsGo(giftCardsIdx + 1), 5000);
 }
 buildGiftCardsSlides();
-// ══════════════ كاروسيل Mobile Games ══════════════
+// ══════════════ Mobile Games Carousel ══════════════
 const mobileGamesSets = [
 [
 {name:'PUBG Mobile', img:"https://raw.githubusercontent.com/King-cat11/King-cat/main/PlayerUnknown's_Battlegrounds_Mobile.webp", color:'#1a3c6e', fn:'openPubg()'},
@@ -1847,7 +2157,7 @@ clearInterval(mobileGamesTimer);
 mobileGamesTimer = setInterval(() => mobileGamesGo(mobileGamesIdx + 1), 5000);
 }
 buildMobileGamesSlides();
-// ══════════════ كاروسيل PC Games ══════════════
+// ══════════════ PC Games Carousel ══════════════
 const pcGamesSets = [
 [
 {name:'', img:'', color:'rgba(127,179,224,.15)', fn:'', empty:true},
@@ -1896,7 +2206,7 @@ clearInterval(pcGamesTimer);
 pcGamesTimer = setInterval(() => pcGamesGo(pcGamesIdx + 1), 5000);
 }
 buildPcGamesSlides();
-// كاروسيل
+// Carousel
 const track=document.getElementById('track');
 const dotsBox=document.getElementById('dots');
 const slides=track.querySelectorAll('.slide');
@@ -1920,9 +2230,9 @@ document.getElementById('prevBtn').addEventListener('click',()=>{ goTo(cur-1); r
 document.getElementById('nextBtn').addEventListener('click',()=>{ goTo(cur+1); resetAuto(); });
 let timer=setInterval(()=>goTo(cur+1),10000);
 function resetAuto(){ clearInterval(timer); timer=setInterval(()=>goTo(cur+1),10000); }
-// دعم اللمس (Swipe) في الموبايل — بيعمل نفس اللي بيعمله زرار السهم بالظبط
-// بتتحرك صورة واحدة بس (اللي بعدها)، ومن أول ما الإيد تلمس بيوقف عداد التبديل التلقائي
-// وبعد ما تخلص السحب، العداد بيرجع يبدأ من الأول عشان مايبدلش لوحده فجأة بعدك
+// Touch (Swipe) support on mobile — works exactly like the arrow button
+// Only one image moves (the next one), and as soon as touch starts the auto-switch timer stops
+// After the swipe ends, the timer restarts from zero so it doesn't switch on its own right after you
 function enableSwipe(el, onNext, onPrev, onPause, onResume) {
 if (!el) return;
 let startX = 0, startY = 0, dragging = false, locked = false;
@@ -1955,7 +2265,7 @@ enableSwipe(track, () => { goTo(cur+1); resetAuto(); }, () => { goTo(cur-1); res
 enableSwipe(document.getElementById('giftCardsTrack'), () => giftCardsGo(giftCardsIdx+1), () => giftCardsGo(giftCardsIdx-1), () => clearInterval(giftCardsTimer), resetGiftTimer);
 enableSwipe(document.getElementById('mobileGamesTrack'), () => mobileGamesGo(mobileGamesIdx+1), () => mobileGamesGo(mobileGamesIdx-1), () => clearInterval(mobileGamesTimer), () => { clearInterval(mobileGamesTimer); mobileGamesTimer = setInterval(() => mobileGamesGo(mobileGamesIdx + 1), 5000); });
 enableSwipe(document.getElementById('pcGamesTrack'), () => pcGamesGo(pcGamesIdx+1), () => pcGamesGo(pcGamesIdx-1), () => clearInterval(pcGamesTimer), () => { clearInterval(pcGamesTimer); pcGamesTimer = setInterval(() => pcGamesGo(pcGamesIdx + 1), 5000); });
-// سايدبار
+// Sidebar
 const menuBtn=document.getElementById('menuBtn');
 const sidebar=document.getElementById('sidebar');
 const overlay=document.getElementById('overlay');
@@ -1971,7 +2281,7 @@ if (a.dataset.target) document.getElementById(a.dataset.target).classList.add('o
 document.querySelectorAll('[data-close]').forEach(b=>{
 b.addEventListener('click',()=>pages.forEach(p=>p.classList.remove('open')));
 });
-// ══════════════ صفحة المزيد (كل الألعاب) ══════════════
+// ══════════════ More page (all games) ══════════════
 function openMoreGames() {
 document.getElementById('moreGamesPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -1980,7 +2290,7 @@ function closeMoreGames() {
 document.getElementById('moreGamesPage').classList.remove('open');
 document.body.style.overflow = '';
 }
-// ══════════════ روبلوكس ══════════════
+// ══════════════ Roblox ══════════════
 function openRoblox() {
 document.getElementById('robloxPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -2082,14 +2392,14 @@ const keys    = Object.keys(robloxCart);
 const rowsDiv = document.getElementById('rbx-sum-rows');
 const totDiv  = document.getElementById('rbx-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
 const item = robloxCart[k];
 return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:.87rem;color:#ddd;padding:7px 0;border-bottom:1px solid rgba(127,179,224,.12);gap:8px;">
-<span style="flex:1;">🪙 ${item.rbx} روبوكس (${item.qty})</span>
+<span style="flex:1;">🪙 ${item.rbx} Robux (${item.qty})</span>
 <div style="display:flex;align-items:center;gap:6px;">
 <button onclick="changeRobloxQty('${k}',-1)" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:#1a1a1a;color:#7fb3e0;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
 <button onclick="changeRobloxQty('${k}',1)"  style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(127,179,224,.5);background:#1a1a1a;color:var(--gold-lt);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
@@ -2097,24 +2407,25 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + robloxCart[k].price * robloxCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendRobloxOrder() {
 const link = document.getElementById('rbx-gamepass-link').value.trim();
 const err  = document.getElementById('rbx-error');
 const keys = Object.keys(robloxCart);
-if (!link && !keys.length) { err.textContent = '⚠️ حط رابط الـ Game Pass واختار الكمية الأول'; return; }
-if (!link)   { err.textContent = '⚠️ لازم تحط رابط الـ Game Pass'; document.getElementById('rbx-gamepass-link').focus(); return; }
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!link && !keys.length) { err.textContent = '⚠️ Paste the Game Pass link and select a quantity first'; return; }
+if (!link)   { err.textContent = '⚠️ You must paste the Game Pass link'; document.getElementById('rbx-gamepass-link').focus(); return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${robloxCart[k].rbx} روبوكس (${robloxCart[k].qty}) (${robloxCart[k].type === 'net' ? 'صافي' : 'غير صافي'})`).join('\n');
 const total = keys.reduce((s,k) => s + robloxCart[k].price * robloxCart[k].qty, 0);
 const msg = `${RLM}🎮 طلب شحن روبلوكس\n${RLM}رابط الـ Game Pass: ${link}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
+recordOrder('Roblox', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 renderRobloxSummary();
-// ── آلة حاسبة صافي/غير صافي ──
+// ── Net/Gross calculator ──
 let rbxCalcType = 'net';
 function openRbxCalc() {
 document.getElementById('rbxCalcOverlay').style.display = 'flex';
@@ -2141,13 +2452,307 @@ if (!input) { result.innerHTML = ''; return; }
 const num = parseInt(input);
 if (rbxCalcType === 'net') {
 const gross = Math.ceil(num / 0.7);
-result.innerHTML = `اعمل Game Pass بـ <b style="color:var(--gold-lt);">${gross}</b> روبوكس عشان تاخد <b>${num}</b> صافي`;
+result.innerHTML = `Make a Game Pass worth <b style="color:var(--gold-lt);">${gross}</b> Robux to get <b>${num}</b> Net`;
 } else {
 const net = Math.floor(num * 0.7);
-result.innerHTML = `لو عملت Game Pass بـ <b>${num}</b> هتاخد <b style="color:var(--gold-lt);">${net}</b> روبوكس صافي`;
+result.innerHTML = `If you make a Game Pass worth <b>${num}</b> you'll get <b style="color:var(--gold-lt);">${net}</b> net Robux`;
 }
 }
-// ══════════════ صفحات الفئة (كوبونات / بلايستيشن / كمبيوتر) منفصلة ══════════════
+// ══════════════ Separate category pages (Coupons / PlayStation / Computer) ══════════════
+// ══════════════ Login page ══════════════
+function generateLoginStars(){
+const container = document.getElementById('loginStars');
+if (!container || container.dataset.filled) return;
+container.dataset.filled = '1';
+let html = '';
+for (let i = 0; i < 90; i++){
+const top = (Math.random() * 62).toFixed(1);
+const left = (Math.random() * 100).toFixed(1);
+const size = (Math.random() * 1.6 + 0.6).toFixed(1);
+const delay = (Math.random() * 4).toFixed(2);
+const dur = (2.5 + Math.random() * 2.5).toFixed(2);
+html += `<div class="login-star" style="top:${top}%; left:${left}%; width:${size}px; height:${size}px; animation-delay:${delay}s; animation-duration:${dur}s;"></div>`;
+}
+for (let i = 0; i < 10; i++){
+const top = (Math.random() * 45).toFixed(1);
+const left = (Math.random() * 100).toFixed(1);
+const delay = (Math.random() * 4).toFixed(2);
+html += `<div class="login-sparkle" style="top:${top}%; left:${left}%; animation-delay:${delay}s;"></div>`;
+}
+container.innerHTML = html;
+}
+
+function openLoginPage() {
+generateLoginStars();
+showLoginCard();
+document.getElementById('loginPage').classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+function closeLoginPage() {
+document.getElementById('loginPage').classList.remove('open');
+document.body.style.overflow = '';
+}
+function showLoginCard(){
+document.getElementById('loginCardRegister').style.display = 'none';
+document.getElementById('loginCardLogin').style.display = 'block';
+}
+function showRegisterCard(){
+document.getElementById('loginCardLogin').style.display = 'none';
+document.getElementById('loginCardRegister').style.display = 'block';
+}
+function openSettingsFlow(){
+const user = getCurrentUser();
+if (user){ openProfilePage(); return; }
+document.getElementById('settingsGatePage').classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+function closeSettingsGate(){
+document.getElementById('settingsGatePage').classList.remove('open');
+document.body.style.overflow = '';
+}
+function goToLoginFromGate(){
+closeSettingsGate();
+openLoginPage();
+}
+// ══════════════ Account system (Firebase Auth + Firestore) ══════════════
+// Orders stay local for now (per-device), keyed by the user's Firebase uid.
+const KC_ORDERS_KEY = 'kc_orders';
+function kcGetOrders(){ try { return JSON.parse(localStorage.getItem(KC_ORDERS_KEY)) || {}; } catch(e){ return {}; } }
+function kcSaveOrders(orders){ localStorage.setItem(KC_ORDERS_KEY, JSON.stringify(orders)); }
+
+let cachedUser = null; // { uid, email, nickname, role, provider }
+function getCurrentUser(){ return cachedUser; }
+
+// Loads (or, on first sign-in, creates) this person's profile document in
+// Firestore at users/{uid}. New accounts always start with role:"user" —
+// only someone with direct access to the Firestore console can promote an
+// account to role:"admin".
+async function loadUserProfile(fbUser){
+const ref = fbDb.collection('users').doc(fbUser.uid);
+const snap = await ref.get();
+let data;
+if (snap.exists){
+data = snap.data();
+} else {
+data = {
+nickname: fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'User'),
+email: fbUser.email || '',
+role: 'user',
+provider: (fbUser.providerData[0] && fbUser.providerData[0].providerId === 'google.com') ? 'google' : 'email'
+};
+await ref.set(data);
+}
+cachedUser = { uid: fbUser.uid, email: fbUser.email || data.email || '', nickname: data.nickname, role: data.role || 'user', provider: data.provider || 'email' };
+return cachedUser;
+}
+
+// Fires on every load and after every sign-in/out. If the signed-in account
+// carries the "admin" role in Firestore, we never let it sit on the normal
+// site — it's bounced straight to the admin panel automatically.
+fbAuth.onAuthStateChanged(async (fbUser) => {
+if (fbUser){
+try{ await loadUserProfile(fbUser); }
+catch(e){ console.error('Failed to load user profile', e); cachedUser = null; }
+} else {
+cachedUser = null;
+}
+updateAuthUI();
+if (cachedUser && cachedUser.role === 'admin'){
+window.location.href = 'admin.html';
+}
+});
+
+function recordOrder(gameName, total){
+if (!cachedUser) return;
+const orders = kcGetOrders();
+if (!orders[cachedUser.uid]) orders[cachedUser.uid] = [];
+orders[cachedUser.uid].unshift({ game: gameName, total: total, date: new Date().toISOString() });
+kcSaveOrders(orders);
+}
+function updateAuthUI(){
+const link = document.getElementById('sidebarAuthLink');
+const avatar = document.getElementById('sidebarAvatar');
+const label = document.getElementById('sidebarAuthLabel');
+if (!link) return;
+const user = getCurrentUser();
+if (user){
+if (avatar){ avatar.textContent = user.nickname.trim().charAt(0).toUpperCase(); avatar.classList.remove('guest'); }
+if (label) label.textContent = user.nickname;
+link.onclick = openProfilePage;
+} else {
+if (avatar){ avatar.textContent = 'Login'; avatar.classList.add('guest'); }
+if (label) label.textContent = 'Login';
+link.onclick = openLoginPage;
+}
+}
+function fbAuthErrorMessage(err){
+switch(err.code){
+case 'auth/user-not-found': return 'No account found with this email. Please create an account.';
+case 'auth/wrong-password': return 'Incorrect password';
+case 'auth/invalid-credential': return 'Incorrect email or password';
+case 'auth/email-already-in-use': return 'An account with this email already exists';
+case 'auth/weak-password': return 'Password must be at least 6 characters';
+case 'auth/invalid-email': return 'Please enter a valid email address';
+case 'auth/popup-closed-by-user': return null;
+default: return err.message || 'Something went wrong, please try again';
+}
+}
+async function afterAuthSuccess(fbUser){
+await loadUserProfile(fbUser);
+document.getElementById('loginEmail').value = '';
+document.getElementById('loginPassword').value = '';
+closeLoginPage();
+updateAuthUI();
+if (cachedUser && cachedUser.role === 'admin'){
+window.location.href = 'admin.html';
+return;
+}
+openProfilePage();
+}
+async function submitLogin(){
+const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+const pass = document.getElementById('loginPassword').value;
+if (!email || !pass){ alert('Please enter your email and password'); return; }
+try{
+const cred = await fbAuth.signInWithEmailAndPassword(email, pass);
+await afterAuthSuccess(cred.user);
+}catch(err){
+const msg = fbAuthErrorMessage(err);
+if (msg) alert(msg);
+}
+}
+async function submitRegister(){
+const nickname = document.getElementById('registerNickname').value.trim();
+const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+const pass = document.getElementById('registerPassword').value;
+if (!nickname || !email || !pass){ alert('Please fill in all fields'); return; }
+try{
+const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
+await cred.user.updateProfile({ displayName: nickname });
+await fbDb.collection('users').doc(cred.user.uid).set({ nickname: nickname, email: email, role: 'user', provider: 'email' });
+document.getElementById('registerNickname').value = '';
+document.getElementById('registerEmail').value = '';
+document.getElementById('registerPassword').value = '';
+await afterAuthSuccess(cred.user);
+}catch(err){
+const msg = fbAuthErrorMessage(err);
+if (msg) alert(msg);
+}
+}
+async function loginWithGoogle(){
+const provider = new firebase.auth.GoogleAuthProvider();
+try{
+const cred = await fbAuth.signInWithPopup(provider);
+await afterAuthSuccess(cred.user);
+}catch(err){
+const msg = fbAuthErrorMessage(err);
+if (msg) alert(msg);
+}
+}
+// ── Profile page ──
+function openProfilePage(){
+const user = getCurrentUser();
+if (!user){ openLoginPage(); return; }
+renderProfilePage();
+document.getElementById('profilePage').classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+function closeProfilePage(){
+document.getElementById('profilePage').classList.remove('open');
+document.body.style.overflow = '';
+}
+function renderProfilePage(){
+const user = getCurrentUser();
+if (!user) return;
+document.getElementById('profileAvatar').textContent = user.nickname.trim().charAt(0).toUpperCase();
+document.getElementById('profileName').textContent = user.nickname;
+document.getElementById('profileEmail').textContent = user.email;
+document.getElementById('profileProvider').textContent = user.provider === 'google' ? 'Signed in with Google' : 'Email account';
+document.getElementById('profileNicknameInput').value = user.nickname;
+document.getElementById('profileNameMsg').textContent = '';
+document.getElementById('profilePassMsg').textContent = '';
+document.getElementById('profileNewPassInput').value = '';
+if (user.provider === 'google'){
+document.getElementById('profilePassEditable').style.display = 'none';
+document.getElementById('profilePassLockedMsg').style.display = 'block';
+} else {
+document.getElementById('profilePassEditable').style.display = 'block';
+document.getElementById('profilePassLockedMsg').style.display = 'none';
+}
+renderProfileOrders();
+switchProfileTab('orders');
+}
+function switchProfileTab(tab){
+['orders','name','pass'].forEach(t=>{
+const btn = document.getElementById('profile-tab-' + t);
+const panel = document.getElementById('profile-panel-' + t);
+const active = t === tab;
+btn.classList.toggle('active', active);
+panel.classList.toggle('active', active);
+btn.style.color = active ? 'var(--gold-lt)' : '';
+btn.style.borderBottomColor = active ? 'var(--gold-lt)' : '';
+});
+}
+function renderProfileOrders(){
+const user = getCurrentUser();
+const list = document.getElementById('profileOrdersList');
+if (!user) return;
+const orders = kcGetOrders()[user.uid] || [];
+if (!orders.length){
+list.innerHTML = '<div class="profile-empty">No orders yet</div>';
+return;
+}
+list.innerHTML = orders.map(o => {
+const d = new Date(o.date);
+const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+return `<div class="order-row">
+<div class="order-row-top">
+<span class="order-game">${o.game}</span>
+<span class="order-total">${o.total} EGP</span>
+</div>
+<div class="order-date">${dateStr}</div>
+</div>`;
+}).join('');
+}
+function saveProfileNickname(){
+const user = getCurrentUser();
+if (!user) return;
+const val = document.getElementById('profileNicknameInput').value.trim();
+const msg = document.getElementById('profileNameMsg');
+if (!val){ msg.style.color = '#e05555'; msg.textContent = 'Nickname cannot be empty'; return; }
+fbDb.collection('users').doc(user.uid).update({ nickname: val }).then(() => {
+cachedUser.nickname = val;
+msg.style.color = '#6fcf6f';
+msg.textContent = 'Nickname updated';
+document.getElementById('profileName').textContent = val;
+document.getElementById('profileAvatar').textContent = val.charAt(0).toUpperCase();
+updateAuthUI();
+}).catch(() => {
+msg.style.color = '#e05555';
+msg.textContent = 'Failed to update nickname';
+});
+}
+function saveProfilePassword(){
+const user = getCurrentUser();
+if (!user) return;
+if (user.provider === 'google') return;
+const val = document.getElementById('profileNewPassInput').value;
+const msg = document.getElementById('profilePassMsg');
+if (!val || val.length < 6){ msg.style.color = '#e05555'; msg.textContent = 'Password must be at least 6 characters'; return; }
+fbAuth.currentUser.updatePassword(val).then(() => {
+document.getElementById('profileNewPassInput').value = '';
+msg.style.color = '#6fcf6f';
+msg.textContent = 'Password updated';
+}).catch((err) => {
+msg.style.color = '#e05555';
+msg.textContent = err.code === 'auth/requires-recent-login' ? 'Please log out and log back in, then try again' : 'Failed to update password';
+});
+}
+function logoutUser(){
+fbAuth.signOut();
+closeProfilePage();
+}
+
 function openCouponsPage() {
 document.getElementById('couponsPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -2298,8 +2903,8 @@ const keys    = Object.keys(steamCart);
 const rowsDiv = document.getElementById('steam-sum-rows');
 const totDiv  = document.getElementById('steam-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2313,18 +2918,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + steamCart[k].price * steamCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendSteamOrder() {
 const err  = document.getElementById('steam-error');
 const keys = Object.keys(steamCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('steam-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${steamCart[k].qty}) ${steamCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + steamCart[k].price * steamCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Steam\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Steam', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openNintendoPage() {
@@ -2406,8 +3012,8 @@ const keys    = Object.keys(nintendoCart);
 const rowsDiv = document.getElementById('nintendo-sum-rows');
 const totDiv  = document.getElementById('nintendo-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2421,18 +3027,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + nintendoCart[k].price * nintendoCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendNintendoOrder() {
 const err  = document.getElementById('nintendo-error');
 const keys = Object.keys(nintendoCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('nintendo-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${nintendoCart[k].qty}) ${nintendoCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + nintendoCart[k].price * nintendoCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Nintendo Switch\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Nintendo Switch', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openValorantPage() {
@@ -2525,8 +3132,8 @@ const keys    = Object.keys(valorantCart);
 const rowsDiv = document.getElementById('valorant-sum-rows');
 const totDiv  = document.getElementById('valorant-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2540,18 +3147,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + valorantCart[k].price * valorantCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendValorantOrder() {
 const err  = document.getElementById('valorant-error');
 const keys = Object.keys(valorantCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('valorant-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${valorantCart[k].qty}) ${valorantCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + valorantCart[k].price * valorantCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Valorant\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Valorant', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openBattlenetPage() {
@@ -2644,8 +3252,8 @@ const keys    = Object.keys(battlenetCart);
 const rowsDiv = document.getElementById('battlenet-sum-rows');
 const totDiv  = document.getElementById('battlenet-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2659,18 +3267,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + battlenetCart[k].price * battlenetCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendBattlenetOrder() {
 const err  = document.getElementById('battlenet-error');
 const keys = Object.keys(battlenetCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('battlenet-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${battlenetCart[k].qty}) ${battlenetCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + battlenetCart[k].price * battlenetCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Battle.net\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Battle.net', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openFc26Page() {
@@ -2761,8 +3370,8 @@ const keys    = Object.keys(fc26Cart);
 const rowsDiv = document.getElementById('fc26-sum-rows');
 const totDiv  = document.getElementById('fc26-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2776,18 +3385,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + fc26Cart[k].price * fc26Cart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendFc26Order() {
 const err  = document.getElementById('fc26-error');
 const keys = Object.keys(fc26Cart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('fc26-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${fc26Cart[k].qty}) ${fc26Cart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + fc26Cart[k].price * fc26Cart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء FC 26 FC Points\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('FC 26', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openLolPage() {
@@ -2878,8 +3488,8 @@ const keys    = Object.keys(lolCart);
 const rowsDiv = document.getElementById('lol-sum-rows');
 const totDiv  = document.getElementById('lol-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -2893,18 +3503,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + lolCart[k].price * lolCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendLolOrder() {
 const err  = document.getElementById('lol-error');
 const keys = Object.keys(lolCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('lol-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${lolCart[k].qty}) ${lolCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + lolCart[k].price * lolCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء League of Legends\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('League of Legends', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openGearupPage() {
@@ -2995,8 +3606,8 @@ const keys    = Object.keys(gearupCart);
 const rowsDiv = document.getElementById('gearup-sum-rows');
 const totDiv  = document.getElementById('gearup-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3010,18 +3621,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + gearupCart[k].price * gearupCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendGearupOrder() {
 const err  = document.getElementById('gearup-error');
 const keys = Object.keys(gearupCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('gearup-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${gearupCart[k].qty}) ${gearupCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + gearupCart[k].price * gearupCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء GearUP Booster PC\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('GearUP Booster', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openRazergoldPage() {
@@ -3112,8 +3724,8 @@ const keys    = Object.keys(razergoldCart);
 const rowsDiv = document.getElementById('razergold-sum-rows');
 const totDiv  = document.getElementById('razergold-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3127,18 +3739,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + razergoldCart[k].price * razergoldCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendRazergoldOrder() {
 const err  = document.getElementById('razergold-error');
 const keys = Object.keys(razergoldCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('razergold-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${razergoldCart[k].qty}) ${razergoldCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + razergoldCart[k].price * razergoldCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Razer Gold\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Razer Gold', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openMinecraftPage() {
@@ -3220,8 +3833,8 @@ const keys    = Object.keys(minecraftCart);
 const rowsDiv = document.getElementById('minecraft-sum-rows');
 const totDiv  = document.getElementById('minecraft-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3235,18 +3848,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + minecraftCart[k].price * minecraftCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendMinecraftOrder() {
 const err  = document.getElementById('minecraft-error');
 const keys = Object.keys(minecraftCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('minecraft-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${minecraftCart[k].qty}) ${minecraftCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + minecraftCart[k].price * minecraftCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Minecraft\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Minecraft', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openXboxPage() {
@@ -3338,8 +3952,8 @@ const keys    = Object.keys(xboxCart);
 const rowsDiv = document.getElementById('xbox-sum-rows');
 const totDiv  = document.getElementById('xbox-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3353,18 +3967,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + xboxCart[k].price * xboxCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendXboxOrder() {
 const err  = document.getElementById('xbox-error');
 const keys = Object.keys(xboxCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('xbox-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${xboxCart[k].qty}) ${xboxCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + xboxCart[k].price * xboxCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Xbox\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('Xbox', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openPlaystationPage() {
@@ -3518,8 +4133,8 @@ const keys    = Object.keys(psnCart);
 const rowsDiv = document.getElementById('psn-sum-rows');
 const totDiv  = document.getElementById('psn-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3533,18 +4148,19 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + psnCart[k].price * psnCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendPsnOrder() {
 const err  = document.getElementById('psn-error');
 const keys = Object.keys(psnCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('psn-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${psnCart[k].qty}) ${psnCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + psnCart[k].price * psnCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء PlayStation\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('PlayStation', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openExitLagPage() {
@@ -3626,8 +4242,8 @@ const keys    = Object.keys(exitlagCart);
 const rowsDiv = document.getElementById('exitlag-sum-rows');
 const totDiv  = document.getElementById('exitlag-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3641,21 +4257,22 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + exitlagCart[k].price * exitlagCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendExitLagOrder() {
 const err  = document.getElementById('exitlag-error');
 const keys = Object.keys(exitlagCart);
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const country = document.getElementById('exitlag-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${exitlagCart[k].qty}) ${exitlagCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + exitlagCart[k].price * exitlagCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء ExitLag\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
+recordOrder('ExitLag', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
-// ══════════════ نظام كرت ببجي (منقول بالكامل) ══════════════
+// ══════════════ PUBG card system (fully migrated) ══════════════
 function openPubg() {
 document.getElementById('pubgPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -3675,7 +4292,7 @@ pubgCart = {};
 renderPubgSummary();
 switchPubgTab('shadawat');
 }
-// كرت واحد مشترك بين تابي "شدات" و "عروض" — تقدر تختار من الاتنين مع بعض
+// One shared card between the 'UC' and 'Deals' tabs — you can pick from both together
 let pubgCart = {};
 renderPubgSummary();
 function switchPubgTab(type) {
@@ -3754,8 +4371,8 @@ const keys    = Object.keys(pubgCart);
 const rowsDiv = document.getElementById('pubg-sum-rows');
 const totDiv  = document.getElementById('pubg-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -3769,23 +4386,24 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + pubgCart[k].price * pubgCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendPubgOrder() {
 const idVal = document.getElementById('pubg-id').value.trim();
 const err   = document.getElementById('pubg-error');
 const keys  = Object.keys(pubgCart);
-if (!idVal && !keys.length) { err.textContent = '⚠️ اكتب الـ ID واختار الكمية الأول'; return; }
-if (!idVal)   { err.textContent = '⚠️ لازم تكتب الـ ID عشان نشحن'; document.getElementById('pubg-id').focus(); return; }
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!idVal && !keys.length) { err.textContent = '⚠️ Enter the ID and select a quantity first'; return; }
+if (!idVal)   { err.textContent = '⚠️ You must enter the ID to charge'; document.getElementById('pubg-id').focus(); return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${pubgLabel(pubgCart[k])} (${pubgCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + pubgCart[k].price * pubgCart[k].qty, 0);
 const msg = `${RLM}🎮 طلب شحن ببجي\n${RLM}الـ ID: ${idVal}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
+recordOrder('PUBG Mobile', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
-// ══════════════ نظام كرت فيفا (منقول بالكامل) ══════════════
+// ══════════════ FIFA card system (fully migrated) ══════════════
 function openFifa() {
 document.getElementById('fifaPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -3887,8 +4505,8 @@ function renderFifaSummary() {
 const { items, totalPrice } = getFifaSelections();
 const rowsDiv = document.getElementById('fifa-sum-rows');
 if (!items.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-document.getElementById('fifa-grand-total').innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+document.getElementById('fifa-grand-total').innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = items.map(item => {
@@ -3901,21 +4519,22 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>
 </div>`;
 }).join('');
-document.getElementById('fifa-grand-total').innerHTML = `السعر: ${totalPrice} EGP`;
+document.getElementById('fifa-grand-total').innerHTML = `Price: ${totalPrice} EGP`;
 }
 function sendFifaCoinsOrder() {
 const user = document.getElementById('fifa-user').value.trim();
 const err  = document.getElementById('fifa-coins-error');
 const { items, totalPrice } = getFifaSelections();
-if (!user) { err.textContent = '⚠️ اكتب الإيميل'; return; }
-if (items.length === 0) { err.textContent = '⚠️ اختار الكمية المطلوبة'; return; }
+if (!user) { err.textContent = '⚠️ Enter your email'; return; }
+if (items.length === 0) { err.textContent = '⚠️ Select the required quantity'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const itemsList = items.map(i => `${RLM}• ${i.label} (${i.qty})`).join('\n');
 const msg = `${RLM}⚽ طلب شحن فيفا\n${RLM}📧 الإيميل: ${user}\n${RLM}📦 الطلب:\n${itemsList}\n${RLM}السعر: ${totalPrice} EGP`;
+recordOrder('FIFA', totalPrice);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
-// ══════════════ نظام كرت فري فاير (منقول بالكامل) ══════════════
+// ══════════════ Free Fire card system (fully migrated) ══════════════
 function openFreefire() {
 document.getElementById('ffPage').classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -4015,8 +4634,8 @@ const keys   = Object.keys(ffIdCart);
 const rowsDiv= document.getElementById('ff-id-sum-rows');
 const totDiv = document.getElementById('ff-id-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -4030,20 +4649,21 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + ffIdCart[k].price * ffIdCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendFFIdOrder() {
 const idVal = document.getElementById('ff-id').value.trim();
 const err   = document.getElementById('ff-id-error');
 const keys  = Object.keys(ffIdCart);
-if (!idVal && !keys.length) { err.textContent = '⚠️ اكتب الـ ID واختار الكمية الأول'; return; }
-if (!idVal)   { err.textContent = '⚠️ لازم تكتب الـ ID عشان نشحن'; document.getElementById('ff-id').focus(); return; }
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!idVal && !keys.length) { err.textContent = '⚠️ Enter the ID and select a quantity first'; return; }
+if (!idVal)   { err.textContent = '⚠️ You must enter the ID to charge'; document.getElementById('ff-id').focus(); return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${ffIdCart[k].label} (${ffIdCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + ffIdCart[k].price * ffIdCart[k].qty, 0);
 const msg = `${RLM}طلب شحن فري فاير (ID)\n${RLM}الـ ID: ${idVal}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
+recordOrder('Free Fire (ID)', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 // ── FF ACCOUNT CART ──
@@ -4107,8 +4727,8 @@ const keys   = Object.keys(ffAccCart);
 const rowsDiv= document.getElementById('ff-acc-sum-rows');
 const totDiv = document.getElementById('ff-acc-grand-total');
 if (!keys.length) {
-rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">لسه مفيش حاجة متختارة</div>`;
-totDiv.innerHTML = `السعر: 0 EGP`;
+rowsDiv.innerHTML = `<div style="font-size:.85rem;color:#666;padding:7px 0;">No items selected yet</div>`;
+totDiv.innerHTML = `Price: 0 EGP`;
 return;
 }
 rowsDiv.innerHTML = keys.map(k => {
@@ -4122,7 +4742,7 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 </div>`;
 }).join('');
 const total = keys.reduce((s,k) => s + ffAccCart[k].price * ffAccCart[k].qty, 0);
-totDiv.innerHTML = `السعر: ${total} EGP`;
+totDiv.innerHTML = `Price: ${total} EGP`;
 }
 function sendFFAccOrder() {
 const user  = document.getElementById('ff-acc-user').value.trim();
@@ -4130,17 +4750,19 @@ const pass  = document.getElementById('ff-acc-pass').value.trim();
 const link  = document.getElementById('ff-acc-link').value.trim();
 const err   = document.getElementById('ff-acc-error');
 const keys  = Object.keys(ffAccCart);
-if (!user)        { err.textContent = '⚠️ اكتب الإيميل'; return; }
-if (!pass)        { err.textContent = '⚠️ اكتب الباسورد'; return; }
-if (!link)        { err.textContent = '⚠️ اكتب نوع الربط'; return; }
-if (!keys.length) { err.textContent = '⚠️ اختار الكمية الأول'; return; }
+if (!user)        { err.textContent = '⚠️ Enter your email'; return; }
+if (!pass)        { err.textContent = '⚠️ Enter the password'; return; }
+if (!link)        { err.textContent = '⚠️ Enter the link type'; return; }
+if (!keys.length) { err.textContent = '⚠️ Select a quantity first'; return; }
 err.textContent = '';
 const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${ffAccCart[k].label} (${ffAccCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + ffAccCart[k].price * ffAccCart[k].qty, 0);
 const msg = `${RLM}طلب شحن فري فاير (حساب)\n${RLM}📧 الإيميل: ${user}\n${RLM}الباسورد: ${pass}\n${RLM}🔗 نوع الربط: ${link}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
+recordOrder('Free Fire (Account)', total);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
+updateAuthUI();
 </script>
 </body>
 </html>
