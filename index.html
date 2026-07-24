@@ -847,22 +847,23 @@ Continue with Google
 </div>
 <div class="rpage-tabs" style="margin:0 -5% 24px;padding:0 5%;border-bottom-color:rgba(127,179,224,.2);">
 <button class="rptab active" id="profile-tab-orders" style="color:var(--gold-lt);border-bottom-color:var(--gold-lt);" onclick="switchProfileTab('orders')">My Orders</button>
-<button class="rptab" id="profile-tab-name" onclick="switchProfileTab('name')">Nickname</button>
-<button class="rptab" id="profile-tab-pass" onclick="switchProfileTab('pass')">Password</button>
+<button class="rptab" id="profile-tab-settings" onclick="switchProfileTab('settings')">Account Settings</button>
 </div>
 <div class="profile-panel active" id="profile-panel-orders">
+<div class="rpage-tabs" style="margin:0 0 16px;padding:0;border-bottom-color:rgba(127,179,224,.15);">
+<button class="rptab active" id="orders-subtab-pending" style="color:var(--gold-lt);border-bottom-color:var(--gold-lt);" onclick="switchOrdersSubTab('pending')">Pending</button>
+<button class="rptab" id="orders-subtab-completed" onclick="switchOrdersSubTab('completed')">Completed</button>
+</div>
 <div id="profileOrdersList"><div class="profile-empty">No orders yet</div></div>
 </div>
-<div class="profile-panel" id="profile-panel-name">
+<div class="profile-panel" id="profile-panel-settings">
 <div class="ofield">
 <label class="olabel">Nickname</label>
 <input class="oinput" id="profileNicknameInput" type="text" placeholder="Your nickname" style="border-color:rgba(127,179,224,.4);">
 </div>
 <button class="profile-save-btn" onclick="saveProfileNickname()">Save Nickname</button>
 <div class="profile-msg" id="profileNameMsg"></div>
-</div>
-<div class="profile-panel" id="profile-panel-pass">
-<div id="profilePassEditable">
+<div id="profilePassEditable" style="margin-top:22px;">
 <div class="ofield">
 <label class="olabel">New Password</label>
 <input class="oinput" id="profileNewPassInput" type="password" placeholder="Enter new password" style="border-color:rgba(127,179,224,.4);">
@@ -2566,7 +2567,7 @@ function recordOrder(gameName, total){
 if (!cachedUser) return;
 const orders = kcGetOrders();
 if (!orders[cachedUser.uid]) orders[cachedUser.uid] = [];
-orders[cachedUser.uid].unshift({ game: gameName, total: total, date: new Date().toISOString() });
+orders[cachedUser.uid].unshift({ game: gameName, total: total, date: new Date().toISOString(), status: 'pending' });
 kcSaveOrders(orders);
 }
 function updateAuthUI(){
@@ -2680,10 +2681,11 @@ document.getElementById('profilePassEditable').style.display = 'block';
 document.getElementById('profilePassLockedMsg').style.display = 'none';
 }
 renderProfileOrders();
+switchOrdersSubTab('pending');
 switchProfileTab('orders');
 }
 function switchProfileTab(tab){
-['orders','name','pass'].forEach(t=>{
+['orders','settings'].forEach(t=>{
 const btn = document.getElementById('profile-tab-' + t);
 const panel = document.getElementById('profile-panel-' + t);
 const active = t === tab;
@@ -2693,13 +2695,25 @@ btn.style.color = active ? 'var(--gold-lt)' : '';
 btn.style.borderBottomColor = active ? 'var(--gold-lt)' : '';
 });
 }
+let currentOrdersSubTab = 'pending';
+function switchOrdersSubTab(tab){
+currentOrdersSubTab = tab;
+['pending','completed'].forEach(t=>{
+const btn = document.getElementById('orders-subtab-' + t);
+const active = t === tab;
+btn.classList.toggle('active', active);
+btn.style.color = active ? 'var(--gold-lt)' : '';
+btn.style.borderBottomColor = active ? 'var(--gold-lt)' : '';
+});
+renderProfileOrders();
+}
 function renderProfileOrders(){
 const user = getCurrentUser();
 const list = document.getElementById('profileOrdersList');
 if (!user) return;
-const orders = kcGetOrders()[user.uid] || [];
+const orders = (kcGetOrders()[user.uid] || []).filter(o => (o.status || 'pending') === currentOrdersSubTab);
 if (!orders.length){
-list.innerHTML = '<div class="profile-empty">No orders yet</div>';
+list.innerHTML = `<div class="profile-empty">No ${currentOrdersSubTab} orders</div>`;
 return;
 }
 list.innerHTML = orders.map(o => {
