@@ -440,7 +440,10 @@ margin-bottom:14px; line-height:1.6;
 <span class="brand">Arthur</span>
 <span class="brand-sub">Admin</span>
 </div>
+<div style="display:flex;align-items:center;gap:8px;">
+<a href="index.html" style="background:none;border:1px solid rgba(127,179,224,.4);color:#eaf1fb;border-radius:20px;padding:6px 14px;font-size:.78rem;cursor:pointer;text-decoration:none;">🏠 Main Site</a>
 <button onclick="fbAuth.signOut().then(()=>window.location.replace('index.html'))" style="background:none;border:1px solid rgba(127,179,224,.4);color:#eaf1fb;border-radius:20px;padding:6px 14px;font-size:.78rem;cursor:pointer;">Log Out</button>
+</div>
 </header>
 
 <main>
@@ -558,30 +561,44 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="fifa-acc-coins">
-<div class="accordion-header" onclick="toggleAccordion('fifa-acc-coins')">
-<span class="name">FC / Silver</span>
-<span class="count" id="fifa-count-coins">0 packages</span>
+<div class="accordion-section" id="fifa-acc-fc">
+<div class="accordion-header" onclick="toggleAccordion('fifa-acc-fc')">
+<span class="name">FC Points</span>
+<span class="count" id="fifa-count-fc">0 packages</span>
 <span class="chev">›</span>
 </div>
 <div class="accordion-body">
 <div class="acc-inner">
-<div id="fifa-admin-coins"></div>
-<button class="add-row-btn" onclick="addFifaRow('coins')">+ Add Package</button>
+<div id="fifa-admin-fc"></div>
+<button class="add-row-btn" onclick="addFifaRow('fc')">+ Add Package</button>
 </div>
 </div>
 </div>
 
-<div class="accordion-section" id="fifa-acc-deals">
-<div class="accordion-header" onclick="toggleAccordion('fifa-acc-deals')">
-<span class="name">Deals</span>
-<span class="count" id="fifa-count-deals">0 packages</span>
+<div class="accordion-section" id="fifa-acc-fadha">
+<div class="accordion-header" onclick="toggleAccordion('fifa-acc-fadha')">
+<span class="name">Silver (فضى)</span>
+<span class="count" id="fifa-count-fadha">0 packages</span>
 <span class="chev">›</span>
 </div>
 <div class="accordion-body">
 <div class="acc-inner">
-<div id="fifa-admin-deals"></div>
-<button class="add-row-btn" onclick="addFifaRow('deals')">+ Add Package</button>
+<div id="fifa-admin-fadha"></div>
+<button class="add-row-btn" onclick="addFifaRow('fadha')">+ Add Package</button>
+</div>
+</div>
+</div>
+
+<div class="accordion-section" id="fifa-acc-offers">
+<div class="accordion-header" onclick="toggleAccordion('fifa-acc-offers')">
+<span class="name">Deals / Offers</span>
+<span class="count" id="fifa-count-offers">0 packages</span>
+<span class="chev">›</span>
+</div>
+<div class="accordion-body">
+<div class="acc-inner">
+<div id="fifa-admin-offers"></div>
+<button class="add-row-btn" onclick="addFifaRow('offers')">+ Add Package</button>
 </div>
 </div>
 </div>
@@ -1167,21 +1184,33 @@ function toggleAccordion(id){
 document.getElementById(id).classList.toggle('open');
 }
 
-// ══════════════ Orders system ══════════════
-// Order shape: { id, game, person, message, status:'pending'|'done', source:'manual'|'cloud', time }
-const ORDERS_KEY = 'arthur_orders_v1';
-
-function loadOrders(){
-try{ const raw = localStorage.getItem(ORDERS_KEY); return raw ? JSON.parse(raw) : []; }
-catch(e){ return []; }
-}
-function saveOrders(){
-try{ localStorage.setItem(ORDERS_KEY, JSON.stringify(ordersList)); }catch(e){}
-}
-
-let ordersList = loadOrders();
-let orderSeq = ordersList.reduce((m,o)=>Math.max(m,o.id||0), 0) + 1;
+// ══════════════ Orders system (Firestore, real-time) ══════════════
+// Order shape in Firestore: { game, person, email, message, total, status:'pending'|'done', source:'manual'|'customer', uid, createdAt }
+// ordersList mirrors the live "orders" collection via onSnapshot — any
+// change here (customer places an order, admin marks it done/deletes it)
+// is reflected instantly for every admin viewing this page.
+let ordersList = [];
 let currentOrdersTab = 'pending';
+
+fbDb.collection('orders').orderBy('createdAt', 'desc').onSnapshot(snap => {
+ordersList = snap.docs.map(doc => {
+const d = doc.data();
+let time = '';
+try{ time = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString() : ''; }catch(e){}
+return {
+id: doc.id,
+game: d.game || 'Order',
+person: d.person || 'Customer',
+email: d.email || '',
+message: d.message || '',
+total: d.total || 0,
+status: d.status || 'pending',
+source: d.source || 'customer',
+time: time
+};
+});
+renderOrdersTab();
+}, err => console.error('orders listener failed', err));
 
 function escapeHtml(str){
 const d = document.createElement('div');
@@ -1198,8 +1227,7 @@ renderOrdersTab();
 
 function renderOrdersTab(){
 const container = document.getElementById('ordersTabContent');
-const list = ordersList.filter(o => o.status === currentOrdersTab)
-.sort((a,b) => b.id - a.id);
+const list = ordersList.filter(o => o.status === currentOrdersTab);
 
 let html = '';
 
@@ -1219,10 +1247,10 @@ if (!list.length){
 html += `<div class="orders-empty">No orders here yet</div>`;
 } else {
 html += list.map(o => `
-<div class="order-card" onclick="openOrderDetails(${o.id})">
+<div class="order-card" onclick="openOrderDetails('${o.id}')">
 <div class="order-game">${escapeHtml(o.game)}</div>
 <div class="order-person">${escapeHtml(o.person)}</div>
-${o.status === 'done' ? `<button class="order-btn trash card-trash" onclick="event.stopPropagation(); deleteOrder(${o.id})">🗑</button>` : ''}
+${o.status === 'done' ? `<button class="order-btn trash card-trash" onclick="event.stopPropagation(); deleteOrder('${o.id}')">🗑</button>` : ''}
 </div>
 `).join('');
 }
@@ -1242,38 +1270,28 @@ const game = gameInput.value.trim() || 'Manual Order';
 const message = msgInput.value.trim();
 if (!message){ alert('Write the order details first'); return; }
 
-ordersList.push({
-id: orderSeq++,
-game,
-person: 'Guest',
-message,
-status: 'pending',
-source: 'manual',
-time: new Date().toLocaleString()
-});
-saveOrders();
+fbDb.collection('orders').add({
+game, person: 'Admin (manual)', message, total: 0,
+status: 'pending', source: 'manual',
+createdAt: firebase.firestore.FieldValue.serverTimestamp()
+}).then(() => {
 gameInput.value = '';
 msgInput.value = '';
-renderOrdersTab();
+}).catch(err => { console.error('Failed to add manual order', err); alert('Could not save the order, please try again.'); });
 }
 
 function markOrderDone(id){
-const o = ordersList.find(x => x.id === id);
-if (o){ o.status = 'done'; saveOrders(); renderOrdersTab(); }
+fbDb.collection('orders').doc(id).update({ status: 'done' }).catch(err => console.error('Failed to update order', err));
 closeOrderModal();
 }
 
 function cancelOrder(id){
-ordersList = ordersList.filter(x => x.id !== id);
-saveOrders();
-renderOrdersTab();
+fbDb.collection('orders').doc(id).delete().catch(err => console.error('Failed to delete order', err));
 closeOrderModal();
 }
 
 function deleteOrder(id){
-ordersList = ordersList.filter(x => x.id !== id);
-saveOrders();
-renderOrdersTab();
+fbDb.collection('orders').doc(id).delete().catch(err => console.error('Failed to delete order', err));
 closeOrderModal();
 }
 
@@ -1283,16 +1301,16 @@ const o = ordersList.find(x => x.id === id);
 if (!o) return;
 
 document.getElementById('orderModalGame').textContent = o.game;
-document.getElementById('orderModalPerson').textContent = o.person;
+document.getElementById('orderModalPerson').textContent = o.person + (o.email ? ' (' + o.email + ')' : '') + (o.total ? ' — ' + o.total + ' EGP' : '');
 document.getElementById('orderModalMessage').textContent = o.message;
 document.getElementById('orderModalTime').textContent = o.time;
 
 const actions = document.getElementById('orderModalActions');
 actions.innerHTML = o.status === 'pending' ? `
-<button class="order-btn done" onclick="markOrderDone(${o.id})">✓ Done</button>
-<button class="order-btn cancel" onclick="cancelOrder(${o.id})">✕ Cancel</button>
+<button class="order-btn done" onclick="markOrderDone('${o.id}')">✓ Done</button>
+<button class="order-btn cancel" onclick="cancelOrder('${o.id}')">✕ Cancel</button>
 ` : `
-<button class="order-btn trash" onclick="deleteOrder(${o.id})">🗑</button>
+<button class="order-btn trash" onclick="deleteOrder('${o.id}')">🗑</button>
 `;
 
 document.getElementById('orderModalOverlay').classList.add('open');
@@ -1301,48 +1319,27 @@ document.getElementById('orderModalOverlay').classList.add('open');
 function closeOrderModal(){
 document.getElementById('orderModalOverlay').classList.remove('open');
 }
-
-// ── Receiving orders from the main site ──
-// This listens for real-time messages broadcast from the main site when a customer
-// checks out. It works instantly across tabs/pages on the same site right now.
-// Once Firebase/Firestore is connected, replace this listener with an onSnapshot()
-// on the "orders" collection and call receiveCloudOrder(order) from there instead —
-// the rest of the logic (rendering, done/cancel, storage) stays the same.
-const ordersChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('arthur-orders') : null;
-if (ordersChannel){
-ordersChannel.onmessage = (e) => {
-if (e.data && e.data.type === 'new-order') receiveCloudOrder(e.data.order);
-};
-}
-
-function receiveCloudOrder(order){
-// Expected shape coming from the main site: { game, person, message }
-// "person" should already contain the customer's data (name/contact/etc.)
-// written into their message by the checkout flow on the main site.
-ordersList.push({
-id: orderSeq++,
-game: (order && order.game) || 'Order',
-person: (order && order.person) || 'Customer',
-message: (order && order.message) || '',
-status: 'pending',
-source: 'cloud',
-time: new Date().toLocaleString()
-});
-saveOrders();
-if (currentOrdersTab === 'pending') renderOrdersTab();
-}
-
-renderOrdersTab();
+// Orders now come live from Firestore (see the onSnapshot listener above) —
+// every order a customer places on the main site lands here instantly.
 
 // ── Roblox packages ──
-// No packages are hardcoded here on purpose: once Firebase is connected,
-// robloxPackages.net / robloxPackages.gross will be filled automatically
-// from the cloud on page load. For now you can add rows manually to test.
+// robloxPackages.net / robloxPackages.gross are kept in sync live with
+// products/roblox in Firestore. Loading a snapshot rebuilds the rows;
+// pressing Save writes the current rows back to Firestore.
 let robloxPackages = {
 net:   [],
 gross: []
 };
 let rbxRowSeq = 0;
+
+fbDb.collection('products').doc('roblox').onSnapshot(snap => {
+if (snap.exists && snap.data().groups){
+robloxPackages = Object.assign({ net: [], gross: [] }, snap.data().groups);
+const maxId = Math.max(0, ...['net','gross'].flatMap(t => robloxPackages[t].map(p => p.id || 0)));
+rbxRowSeq = maxId + 1;
+buildRobloxAdminRows();
+}
+}, err => console.error('products/roblox listener failed', err));
 
 function buildRobloxAdminRows(){
 ['net','gross'].forEach(type => {
@@ -1390,19 +1387,27 @@ const field = inp.dataset.field;
 const pkg = robloxPackages[type].find(p => p.id === id);
 if (pkg) pkg[field] = parseInt(inp.value) || 0;
 });
-// TODO: once Firebase is connected, write robloxPackages here instead of just logging it
-console.log('Roblox prices ready to sync:', robloxPackages);
-alert('Saved locally. This will sync to the live site once Firebase is connected.');
+fbDb.collection('products').doc('roblox').set({ groups: robloxPackages }).then(() => {
+alert('Saved — the live site is now showing these prices.');
+}).catch(err => { console.error('Failed to save Roblox prices', err); alert('Could not save, please try again.'); });
 }
 
 // ── PUBG Mobile packages ──
-// Same idea as Roblox: nothing hardcoded, will be filled from the cloud once Firebase is connected.
 // "UC" packages have a quantity (UC) + price. "Deals" packages have a name + price instead of a plain quantity.
 let pubgPackages = {
 uc:    [],
 deals: []
 };
 let pubgRowSeq = 0;
+
+fbDb.collection('products').doc('pubg').onSnapshot(snap => {
+if (snap.exists && snap.data().groups){
+pubgPackages = Object.assign({ uc: [], deals: [] }, snap.data().groups);
+const maxId = Math.max(0, ...['uc','deals'].flatMap(t => pubgPackages[t].map(p => p.id || 0)));
+pubgRowSeq = maxId + 1;
+buildPubgAdminRows();
+}
+}, err => console.error('products/pubg listener failed', err));
 
 function buildPubgAdminRows(){
 ['uc','deals'].forEach(type => {
@@ -1462,21 +1467,31 @@ const field = inp.dataset.field;
 const pkg = pubgPackages[type].find(p => p.id === id);
 if (pkg) pkg[field] = field === 'price' || field === 'uc' ? (parseInt(inp.value) || 0) : inp.value;
 });
-// TODO: once Firebase is connected, write pubgPackages here instead of just logging it
-console.log('PUBG prices ready to sync:', pubgPackages);
-alert('Saved locally. This will sync to the live site once Firebase is connected.');
+fbDb.collection('products').doc('pubg').set({ groups: pubgPackages }).then(() => {
+alert('Saved — the live site is now showing these prices.');
+}).catch(err => { console.error('Failed to save PUBG prices', err); alert('Could not save, please try again.'); });
 }
 
 // ── FIFA packages ──
-// "FC / Silver" packages have a quantity (coins) + price. "Deals" packages have a name + price.
+// "FC" and "Silver (فضى)" packages have a quantity + price. "Offers" packages have a name + price.
 let fifaPackages = {
-coins: [],
-deals: []
+fc:     [],
+fadha:  [],
+offers: []
 };
 let fifaRowSeq = 0;
 
+fbDb.collection('products').doc('fifa').onSnapshot(snap => {
+if (snap.exists && snap.data().groups){
+fifaPackages = Object.assign({ fc: [], fadha: [], offers: [] }, snap.data().groups);
+const maxId = Math.max(0, ...['fc','fadha','offers'].flatMap(t => fifaPackages[t].map(p => p.id || 0)));
+fifaRowSeq = maxId + 1;
+buildFifaAdminRows();
+}
+}, err => console.error('products/fifa listener failed', err));
+
 function buildFifaAdminRows(){
-['coins','deals'].forEach(type => {
+['fc','fadha','offers'].forEach(type => {
 const container = document.getElementById('fifa-admin-' + type);
 const list = fifaPackages[type];
 document.getElementById('fifa-count-' + type).textContent = list.length + ' package' + (list.length === 1 ? '' : 's');
@@ -1484,36 +1499,36 @@ if (!list.length){
 container.innerHTML = `<div class="empty-hint">No packages yet — will load automatically from the cloud, or add one manually below</div>`;
 return;
 }
-container.innerHTML = list.map(pkg => type === 'coins' ? `
+container.innerHTML = list.map(pkg => type !== 'offers' ? `
 <div class="price-row" data-row-id="${pkg.id}">
 <div class="field">
-<input type="number" inputmode="numeric" placeholder="Quantity" data-type="coins" data-id="${pkg.id}" data-field="amount" value="${pkg.amount}">
-<span class="unit">FC/Silver</span>
+<input type="number" inputmode="numeric" placeholder="Quantity" data-type="${type}" data-id="${pkg.id}" data-field="amount" value="${pkg.amount}">
+<span class="unit">${type === 'fc' ? 'FC' : 'Silver'}</span>
 </div>
 <div class="field">
-<input type="number" inputmode="numeric" placeholder="Price" data-type="coins" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
+<input type="number" inputmode="numeric" placeholder="Price" data-type="${type}" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
 <span class="unit">EGP</span>
 </div>
-<button class="remove-row" onclick="removeFifaRow('coins',${pkg.id})">×</button>
+<button class="remove-row" onclick="removeFifaRow('${type}',${pkg.id})">×</button>
 </div>
 ` : `
 <div class="price-row" data-row-id="${pkg.id}">
 <div class="field">
-<input type="text" placeholder="Package name" data-type="deals" data-id="${pkg.id}" data-field="label" value="${pkg.label}">
+<input type="text" placeholder="Package name" data-type="offers" data-id="${pkg.id}" data-field="label" value="${pkg.label}">
 </div>
 <div class="field">
-<input type="number" inputmode="numeric" placeholder="Price" data-type="deals" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
+<input type="number" inputmode="numeric" placeholder="Price" data-type="offers" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
 <span class="unit">EGP</span>
 </div>
-<button class="remove-row" onclick="removeFifaRow('deals',${pkg.id})">×</button>
+<button class="remove-row" onclick="removeFifaRow('offers',${pkg.id})">×</button>
 </div>
 `).join('');
 });
 }
 
 function addFifaRow(type){
-if (type === 'coins') fifaPackages.coins.push({ id: fifaRowSeq++, amount: '', price: '' });
-else fifaPackages.deals.push({ id: fifaRowSeq++, label: '', price: '' });
+if (type !== 'offers') fifaPackages[type].push({ id: fifaRowSeq++, amount: '', price: '' });
+else fifaPackages.offers.push({ id: fifaRowSeq++, label: '', price: '' });
 buildFifaAdminRows();
 document.getElementById('fifa-acc-' + type).classList.add('open');
 }
@@ -1533,9 +1548,9 @@ const field = inp.dataset.field;
 const pkg = fifaPackages[type].find(p => p.id === id);
 if (pkg) pkg[field] = field === 'label' ? inp.value : (parseInt(inp.value) || 0);
 });
-// TODO: once Firebase is connected, write fifaPackages here instead of just logging it
-console.log('FIFA prices ready to sync:', fifaPackages);
-alert('Saved locally. This will sync to the live site once Firebase is connected.');
+fbDb.collection('products').doc('fifa').set({ groups: fifaPackages }).then(() => {
+alert('Saved — the live site is now showing these prices.');
+}).catch(err => { console.error('Failed to save FIFA prices', err); alert('Could not save, please try again.'); });
 }
 
 // ── Free Fire packages ──
@@ -1545,6 +1560,15 @@ id:      [],
 account: []
 };
 let freefireRowSeq = 0;
+
+fbDb.collection('products').doc('freefire').onSnapshot(snap => {
+if (snap.exists && snap.data().groups){
+freefirePackages = Object.assign({ id: [], account: [] }, snap.data().groups);
+const maxId = Math.max(0, ...['id','account'].flatMap(t => freefirePackages[t].map(p => p.id || 0)));
+freefireRowSeq = maxId + 1;
+buildFreefireAdminRows();
+}
+}, err => console.error('products/freefire listener failed', err));
 
 function buildFreefireAdminRows(){
 ['id','account'].forEach(type => {
@@ -1591,9 +1615,9 @@ const field = inp.dataset.field;
 const pkg = freefirePackages[type].find(p => p.id === id);
 if (pkg) pkg[field] = field === 'label' ? inp.value : (parseInt(inp.value) || 0);
 });
-// TODO: once Firebase is connected, write freefirePackages here instead of just logging it
-console.log('Free Fire prices ready to sync:', freefirePackages);
-alert('Saved locally. This will sync to the live site once Firebase is connected.');
+fbDb.collection('products').doc('freefire').set({ groups: freefirePackages }).then(() => {
+alert('Saved — the live site is now showing these prices.');
+}).catch(err => { console.error('Failed to save Free Fire prices', err); alert('Could not save, please try again.'); });
 }
 
 // ── Gift Cards ──
@@ -1618,7 +1642,11 @@ const GC_FLAGS = [
 { v:'🇯🇵', label:'🇯🇵 Japan' },
 { v:'🇰🇷', label:'🇰🇷 South Korea' },
 { v:'🇧🇷', label:'🇧🇷 Brazil' },
-{ v:'🇷🇺', label:'🇷🇺 Russia' }
+{ v:'🇷🇺', label:'🇷🇺 Russia' },
+{ v:'🇱🇧', label:'🇱🇧 Lebanon' },
+{ v:'🇰🇼', label:'🇰🇼 Kuwait' },
+{ v:'🇧🇭', label:'🇧🇭 Bahrain' },
+{ v:'🇶🇦', label:'🇶🇦 Qatar' }
 ];
 
 function gcFlagOptions(selected){
@@ -1661,6 +1689,17 @@ giftCardPackages[key] = giftCardPackages[key].filter(p => p.id !== id);
 buildGCRows(key);
 }
 
+Object.keys(giftCardPackages).forEach(key => {
+fbDb.collection('products').doc(key).onSnapshot(snap => {
+if (snap.exists && snap.data().groups && snap.data().groups.main){
+giftCardPackages[key] = snap.data().groups.main;
+const maxId = Math.max(0, ...Object.values(giftCardPackages).flatMap(list => list.map(p => p.id || 0)));
+gcRowSeq = Math.max(gcRowSeq, maxId + 1);
+buildGCRows(key);
+}
+}, err => console.error('products/' + key + ' listener failed', err));
+});
+
 Object.keys(giftCardPackages).forEach(buildGCRows);
 
 function saveGCPrices(key){
@@ -1670,9 +1709,9 @@ const field = inp.dataset.field;
 const pkg = giftCardPackages[key].find(p => p.id === id);
 if (pkg) pkg[field] = (field === 'label' || field === 'flag') ? inp.value : (parseInt(inp.value) || 0);
 });
-// TODO: once Firebase is connected, write giftCardPackages[key] here instead of just logging it
-console.log('{} prices ready to sync:'.replace('{}', key), giftCardPackages[key]);
-alert('Saved locally. This will sync to the live site once Firebase is connected.');
+fbDb.collection('products').doc(key).set({ groups: { main: giftCardPackages[key] } }).then(() => {
+alert('Saved — the live site is now showing these prices.');
+}).catch(err => { console.error('Failed to save ' + key + ' prices', err); alert('Could not save, please try again.'); });
 }
 
 </script>
