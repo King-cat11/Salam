@@ -335,6 +335,27 @@ resize:vertical;
 }
 .manual-order-form .field input:focus,
 .manual-order-form .field textarea:focus{ outline:none; }
+.add-country-box{
+border:1px solid rgba(127,179,224,.2);
+border-radius:14px;
+background:rgba(127,179,224,.04);
+padding:14px;
+margin-bottom:14px;
+}
+.add-country-box .field{
+display:flex; align-items:center; gap:6px;
+background:rgba(0,0,0,.3);
+border:1px solid rgba(127,179,224,.3);
+border-radius:8px;
+padding:8px 10px;
+margin-bottom:10px;
+}
+.add-country-box select{
+width:100%; background:none; border:none; color:#fff;
+font-size:.85rem; font-family:'Tahoma','Segoe UI',sans-serif;
+}
+.add-country-box select:focus{ outline:none; }
+.add-country-box select option{ background:#1a1a1a; color:#fff; }
 .order-card{
 position:relative;
 border:1px solid rgba(127,179,224,.2);
@@ -835,19 +856,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-steam">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-steam')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-steam">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('steam')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-steam" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-steam"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('steam')">Add</button>
+</div>
 <div id="gc-admin-steam"></div>
-<button class="add-row-btn" onclick="addGCRow('steam')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('steam')">Save Changes</button>
@@ -863,22 +879,19 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-xbox">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-xbox')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-xbox">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('xbox')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-xbox" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-xbox"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('xbox')">Add</button>
+</div>
 <div id="gc-admin-xbox"></div>
-<button class="add-row-btn" onclick="addGCRow('xbox')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('xbox')">Save Changes</button>
+</div>
+
 </div>
 
 </div>
@@ -891,19 +904,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-minecraft">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-minecraft')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-minecraft">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('minecraft')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-minecraft" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-minecraft"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('minecraft')">Add</button>
+</div>
 <div id="gc-admin-minecraft"></div>
-<button class="add-row-btn" onclick="addGCRow('minecraft')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('minecraft')">Save Changes</button>
@@ -919,19 +927,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-exitlag">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-exitlag')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-exitlag">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('exitlag')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-exitlag" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-exitlag"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('exitlag')">Add</button>
+</div>
 <div id="gc-admin-exitlag"></div>
-<button class="add-row-btn" onclick="addGCRow('exitlag')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('exitlag')">Save Changes</button>
@@ -947,22 +950,19 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-playstation">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-playstation')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-playstation">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('playstation')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-playstation" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-playstation"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('playstation')">Add</button>
+</div>
 <div id="gc-admin-playstation"></div>
-<button class="add-row-btn" onclick="addGCRow('playstation')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('playstation')">Save Changes</button>
+</div>
+
 </div>
 
 </div>
@@ -975,19 +975,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-nintendo">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-nintendo')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-nintendo">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('nintendo')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-nintendo" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-nintendo"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('nintendo')">Add</button>
+</div>
 <div id="gc-admin-nintendo"></div>
-<button class="add-row-btn" onclick="addGCRow('nintendo')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('nintendo')">Save Changes</button>
@@ -1003,19 +998,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-valorant">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-valorant')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-valorant">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('valorant')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-valorant" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-valorant"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('valorant')">Add</button>
+</div>
 <div id="gc-admin-valorant"></div>
-<button class="add-row-btn" onclick="addGCRow('valorant')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('valorant')">Save Changes</button>
@@ -1031,19 +1021,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-battlenet">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-battlenet')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-battlenet">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('battlenet')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-battlenet" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-battlenet"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('battlenet')">Add</button>
+</div>
 <div id="gc-admin-battlenet"></div>
-<button class="add-row-btn" onclick="addGCRow('battlenet')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('battlenet')">Save Changes</button>
@@ -1059,19 +1044,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-fc26">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-fc26')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-fc26">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('fc26')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-fc26" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-fc26"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('fc26')">Add</button>
+</div>
 <div id="gc-admin-fc26"></div>
-<button class="add-row-btn" onclick="addGCRow('fc26')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('fc26')">Save Changes</button>
@@ -1087,19 +1067,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-lol">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-lol')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-lol">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('lol')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-lol" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-lol"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('lol')">Add</button>
+</div>
 <div id="gc-admin-lol"></div>
-<button class="add-row-btn" onclick="addGCRow('lol')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('lol')">Save Changes</button>
@@ -1115,19 +1090,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-gearup">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-gearup')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-gearup">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('gearup')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-gearup" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-gearup"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('gearup')">Add</button>
+</div>
 <div id="gc-admin-gearup"></div>
-<button class="add-row-btn" onclick="addGCRow('gearup')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('gearup')">Save Changes</button>
@@ -1143,19 +1113,14 @@ margin-bottom:14px; line-height:1.6;
 <div style="flex:1; overflow-y:auto;">
 <div class="price-editor">
 
-<div class="accordion-section" id="gc-acc-razergold">
-<div class="accordion-header" onclick="toggleAccordion('gc-acc-razergold')">
-<span class="name">Denominations</span>
-<span class="count" id="gc-count-razergold">0 packages</span>
-<span class="chev">›</span>
+<button class="add-row-btn" onclick="addGCCountry('razergold')" style="margin-bottom:14px;">🌍 + Add Country</button>
+<div class="add-country-box" id="gc-addcountry-razergold" style="display:none;">
+<div class="field">
+<select id="gc-addcountry-flag-razergold"></select>
 </div>
-<div class="accordion-body">
-<div class="acc-inner">
+<button class="save-btn" onclick="confirmAddGCCountry('razergold')">Add</button>
+</div>
 <div id="gc-admin-razergold"></div>
-<button class="add-row-btn" onclick="addGCRow('razergold')">+ Add Package</button>
-</div>
-</div>
-</div>
 
 <div class="save-bar">
 <button class="save-btn" onclick="saveGCPrices('razergold')">Save Changes</button>
@@ -1665,43 +1630,105 @@ const GC_FLAGS = [
 { v:'🇶🇦', label:'🇶🇦 Qatar' }
 ];
 
-function gcFlagOptions(selected){
-return GC_FLAGS.map(f => `<option value="${f.v}" ${f.v === selected ? 'selected' : ''}>${f.label}</option>`).join('');
+function gcFlagOptions(){
+return GC_FLAGS.map(f => `<option value="${f.v}">${f.label}</option>`).join('');
 }
+const GC_FLAG_NAME = Object.fromEntries(GC_FLAGS.map(f => [f.v, f.label]));
+
+// Which country groups are expanded per category (key + '|' + flag -> true/false)
+let gcOpenGroups = {};
 
 function buildGCRows(key){
 const container = document.getElementById('gc-admin-' + key);
 const list = giftCardPackages[key];
-document.getElementById('gc-count-' + key).textContent = list.length + ' package' + (list.length === 1 ? '' : 's');
+
 if (!list.length){
-container.innerHTML = `<div class="empty-hint">No packages yet — will load automatically from the cloud, or add one manually below</div>`;
+container.innerHTML = `<div class="empty-hint">No countries yet — press "🌍 + Add Country" above to add the first one</div>`;
 return;
 }
-container.innerHTML = list.map(pkg => `
-<div class="price-row" data-row-id="${pkg.id}">
-<div class="field flag-field">
-<select data-key="${key}" data-id="${pkg.id}" data-field="flag">${gcFlagOptions(pkg.flag)}</select>
+
+// Group packages by flag (= country)
+const groups = {};
+list.forEach(pkg => {
+const flag = pkg.flag || '🌍';
+if (!groups[flag]) groups[flag] = [];
+groups[flag].push(pkg);
+});
+
+container.innerHTML = Object.keys(groups).map(flag => {
+const groupKey = key + '|' + flag;
+const isOpen = !!gcOpenGroups[groupKey];
+const countryName = GC_FLAG_NAME[flag] || flag;
+const rows = groups[flag];
+return `
+<div class="accordion-section${isOpen ? ' open' : ''}" style="margin-bottom:10px;">
+<div class="accordion-header" onclick="toggleGCCountry('${key}','${flag}')">
+<span class="name">${countryName}</span>
+<span class="count">${rows.length} package${rows.length === 1 ? '' : 's'}</span>
+<span class="chev">›</span>
 </div>
+<div class="accordion-body">
+<div class="acc-inner">
+${rows.map(pkg => `
+<div class="price-row" data-row-id="${pkg.id}">
 <div class="field">
-<input type="text" placeholder="Package name" data-key="${key}" data-id="${pkg.id}" data-field="label" value="${pkg.label}">
+<input type="text" placeholder="Currency / package name (e.g. $10)" data-key="${key}" data-id="${pkg.id}" data-field="label" value="${pkg.label}">
 </div>
 <div class="field">
 <input type="number" inputmode="numeric" placeholder="Price" data-key="${key}" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
 <span class="unit">EGP</span>
 </div>
-<button class="remove-row" onclick="removeGCRow('${key}',${pkg.id})">×</button>
+<button class="remove-row" onclick="removeGCRow('${key}','${flag}',${pkg.id})">×</button>
 </div>
-`).join('');
+`).join('')}
+<button class="add-row-btn" onclick="addGCPackageToCountry('${key}','${flag}')">+ Add Package</button>
+<button class="remove-row" style="width:auto;padding:6px 12px;margin-top:8px;" onclick="removeGCCountry('${key}','${flag}')">🗑 Remove ${countryName}</button>
+</div>
+</div>
+</div>`;
+}).join('');
 }
 
-function addGCRow(key){
-giftCardPackages[key].push({ id: gcRowSeq++, flag: '🌍', label: '', price: '' });
+function toggleGCCountry(key, flag){
+const groupKey = key + '|' + flag;
+gcOpenGroups[groupKey] = !gcOpenGroups[groupKey];
 buildGCRows(key);
-document.getElementById('gc-acc-' + key).classList.add('open');
 }
 
-function removeGCRow(key, id){
+function addGCCountry(key){
+const box = document.getElementById('gc-addcountry-' + key);
+const select = document.getElementById('gc-addcountry-flag-' + key);
+if (!select.dataset.filled){
+select.innerHTML = gcFlagOptions();
+select.dataset.filled = '1';
+}
+box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function confirmAddGCCountry(key){
+const select = document.getElementById('gc-addcountry-flag-' + key);
+const flag = select.value;
+giftCardPackages[key].push({ id: gcRowSeq++, flag: flag, label: '', price: '' });
+gcOpenGroups[key + '|' + flag] = true;
+document.getElementById('gc-addcountry-' + key).style.display = 'none';
+buildGCRows(key);
+}
+
+function addGCPackageToCountry(key, flag){
+giftCardPackages[key].push({ id: gcRowSeq++, flag: flag, label: '', price: '' });
+gcOpenGroups[key + '|' + flag] = true;
+buildGCRows(key);
+}
+
+function removeGCRow(key, flag, id){
 giftCardPackages[key] = giftCardPackages[key].filter(p => p.id !== id);
+buildGCRows(key);
+}
+
+function removeGCCountry(key, flag){
+const countryName = GC_FLAG_NAME[flag] || flag;
+if (!confirm('Remove all ' + countryName + ' packages for this card?')) return;
+giftCardPackages[key] = giftCardPackages[key].filter(p => (p.flag || '🌍') !== flag);
 buildGCRows(key);
 }
 
@@ -1725,7 +1752,7 @@ document.querySelectorAll(`#gc-${key}Page [data-field]`).forEach(inp => {
 const id    = parseInt(inp.dataset.id);
 const field = inp.dataset.field;
 const pkg = giftCardPackages[key].find(p => p.id === id);
-if (pkg) pkg[field] = (field === 'label' || field === 'flag') ? inp.value : (parseInt(inp.value) || 0);
+if (pkg) pkg[field] = field === 'label' ? inp.value : (parseInt(inp.value) || 0);
 });
 fbDb.collection('products').doc(key).set({ groups: { main: giftCardPackages[key] } }).then(() => {
 alert('Saved — the live site is now showing these prices.');
