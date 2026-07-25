@@ -1732,9 +1732,42 @@ giftCardPackages[key] = giftCardPackages[key].filter(p => (p.flag || '🌍') !==
 buildGCRows(key);
 }
 
+// Categories that have a real per-country picker on the main site (the rest
+// only ever show a single merged price list, no matter how you group them
+// here). For these four, Firestore stores { countries: { Name: { flag, packages } } }
+// instead of { groups: { main: [...] } } — this table maps flag <-> the exact
+// country name the site already knows about, so saving here lines up with the
+// site's built-in dropdown entries instead of creating stray duplicates.
+const GC_COUNTRY_CATS = ['playstation','valorant','battlenet','xbox'];
+const GC_COUNTRY_NAME_BY_FLAG = {
+playstation: { '🇪🇬':'Egypt', '🇺🇸':'USA', '🇦🇪':'UAE', '🇬🇧':'UK', '🇹🇷':'Turkey', '🇸🇦':'KSA', '🇱🇧':'Lebanon', '🇰🇼':'Kuwait', '🇧🇭':'Bahrain', '🇶🇦':'Qatar', '🇧🇷':'Brazil' },
+valorant:    { '🇪🇬':'Egypt', '🇹🇷':'Turkey' },
+battlenet:   { '🇺🇸':'United States', '🇪🇺':'Europe' },
+xbox:        { '🇺🇸':'United States', '🇹🇷':'Turkey' }
+};
+function gcCountryName(key, flag){
+return (GC_COUNTRY_NAME_BY_FLAG[key] && GC_COUNTRY_NAME_BY_FLAG[key][flag])
+|| (GC_FLAG_NAME[flag] || flag).replace(/^\S+\s/, ''); // strip the emoji off "🇩🇪 Germany" -> "Germany" for brand-new flags
+}
+function gcFlagForCountryName(key, name){
+const map = GC_COUNTRY_NAME_BY_FLAG[key] || {};
+for (const flag in map){ if (map[flag] === name) return flag; }
+return '🌍';
+}
+
 Object.keys(giftCardPackages).forEach(key => {
 fbDb.collection('products').doc(key).onSnapshot(snap => {
-if (snap.exists && snap.data().groups && snap.data().groups.main){
+if (snap.exists && GC_COUNTRY_CATS.includes(key) && snap.data().countries){
+// Country schema -> flatten into {id, flag, label, price} rows for this editor
+const countries = snap.data().countries;
+const rows = [];
+Object.keys(countries).forEach(name => {
+const flag = (countries[name] && countries[name].flag) || gcFlagForCountryName(key, name);
+const packages = (countries[name] && countries[name].packages) || [];
+packages.forEach(p => rows.push({ id: gcRowSeq++, flag, label: p.label, price: p.price }));
+});
+giftCardPackages[key] = rows;
+} else if (snap.exists && snap.data().groups && snap.data().groups.main){
 giftCardPackages[key] = snap.data().groups.main;
 } else {
 giftCardPackages[key] = JSON.parse(JSON.stringify(SEED_PRODUCTS.giftcards[key] || []));
@@ -1754,7 +1787,22 @@ const field = inp.dataset.field;
 const pkg = giftCardPackages[key].find(p => p.id === id);
 if (pkg) pkg[field] = field === 'label' ? inp.value : (parseInt(inp.value) || 0);
 });
-fbDb.collection('products').doc(key).set({ groups: { main: giftCardPackages[key] } }).then(() => {
+
+let payload;
+if (GC_COUNTRY_CATS.includes(key)){
+const countries = {};
+giftCardPackages[key].forEach(pkg => {
+const flag = pkg.flag || '🌍';
+const name = gcCountryName(key, flag);
+if (!countries[name]) countries[name] = { flag, packages: [] };
+countries[name].packages.push({ label: pkg.label, price: pkg.price });
+});
+payload = { countries };
+} else {
+payload = { groups: { main: giftCardPackages[key] } };
+}
+
+fbDb.collection('products').doc(key).set(payload).then(() => {
 alert('Saved — the live site is now showing these prices.');
 }).catch(err => { console.error('Failed to save ' + key + ' prices', err); alert('Could not save, please try again.'); });
 }
