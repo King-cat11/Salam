@@ -2607,17 +2607,13 @@ const PRODUCTS_CONFIG = {
 'razergold-prices':    { doc:'razergold',   group:'main', kind:'generic', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard' },
 'minecraft-prices':    { doc:'minecraft',   group:'main', kind:'generic', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard' },
 'exitlag-prices':      { doc:'exitlag',     group:'main', kind:'generic', toggleFn:'toggleExitLagAmt',   qtyFn:'changeExitLagQtyCard' },
-'valorant-prices':     { doc:'valorant',    group:'main', kind:'generic', toggleFn:'toggleValorantAmt',  qtyFn:'changeValorantQtyCard', flagFilter: f => f !== '🇹🇷' },
-'valorant-prices-tr':  { doc:'valorant',    group:'main', kind:'generic', toggleFn:'toggleValorantAmt',  qtyFn:'changeValorantQtyCard', flagFilter: f => f === '🇹🇷' },
-'battlenet-prices':    { doc:'battlenet',   group:'main', kind:'generic', toggleFn:'toggleBattlenetAmt', qtyFn:'changeBattlenetQtyCard', flagFilter: f => f !== '🇪🇺' },
-'battlenet-prices-eu': { doc:'battlenet',   group:'main', kind:'generic', toggleFn:'toggleBattlenetAmt', qtyFn:'changeBattlenetQtyCard', flagFilter: f => f === '🇪🇺' },
-'xbox-prices-us':      { doc:'xbox',        group:'main', kind:'generic', toggleFn:'toggleXboxAmt',      qtyFn:'changeXboxQtyCard', flagFilter: f => f !== '🇹🇷' },
-'xbox-prices-tr':      { doc:'xbox',        group:'main', kind:'generic', toggleFn:'toggleXboxAmt',      qtyFn:'changeXboxQtyCard', flagFilter: f => f === '🇹🇷' },
 };
-// PlayStation is keyed by country name (matches the country picker on the page).
-const PSN_FLAG_TO_COUNTRY = { '🇺🇸':'USA', '🇦🇪':'UAE', '🇬🇧':'UK', '🇹🇷':'Turkey', '🇸🇦':'KSA', '🇱🇧':'Lebanon', '🇰🇼':'Kuwait', '🇧🇭':'Bahrain', '🇶🇦':'Qatar', '🇧🇷':'Brazil' };
+// Valorant / Battle.net / Xbox / PlayStation are country-based — handled by the
+// dedicated country engine below (COUNTRY_CATS), not by PRODUCTS_CONFIG.
 
 const productsCache = {}; // docId -> data
+const FALLBACK_COUNTRIES = {"valorant": {"Egypt": [{"label": "475 VP", "price": 289}, {"label": "1000 VP", "price": 562}, {"label": "2050 VP", "price": 1155}, {"label": "3650 VP", "price": 2021}, {"label": "5350 VP", "price": 2888}, {"label": "11000 VP", "price": 5660}], "Turkey": [{"label": "375 VP", "price": 165}, {"label": "825 VP", "price": 325}, {"label": "1700 VP", "price": 640}, {"label": "2925 VP", "price": 1090}, {"label": "4325 VP", "price": 1575}, {"label": "8900 VP", "price": 3150}]}, "battlenet": {"United States": [{"label": "5 USD", "price": 289}, {"label": "10 USD", "price": 578}, {"label": "20 USD", "price": 1155}, {"label": "50 USD", "price": 2888}], "Europe": [{"label": "20 EU", "price": 1449}, {"label": "50 EU", "price": 3617}, {"label": "100 EU", "price": 7235}]}, "xbox": {"United States": [{"label": "$5", "price": 299}, {"label": "$10", "price": 546}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}], "Turkey": [{"label": "25 TL", "price": 46}, {"label": "50 TL", "price": 84}, {"label": "100 TL", "price": 168}, {"label": "300 TL", "price": 425}]}, "playstation": {"USA": [{"label": "$1", "price": 76}, {"label": "$5", "price": 287}, {"label": "$10", "price": 557}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$200", "price": 10920}], "UAE": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$120", "price": 6552}, {"label": "$160", "price": 8736}], "UK": [{"label": "£10", "price": 814}, {"label": "£40", "price": 3255}, {"label": "£100", "price": 8138}], "Turkey": [{"label": "250 TL", "price": 336}, {"label": "500 TL", "price": 672}, {"label": "750 TL", "price": 1008}, {"label": "1000 TL", "price": 1344}, {"label": "1500 TL", "price": 2016}, {"label": "4000 TL", "price": 5355}], "KSA": [{"label": "$10", "price": 539}, {"label": "$20", "price": 1187}, {"label": "$50", "price": 2966}, {"label": "$100", "price": 5933}, {"label": "$160", "price": 9492}], "Lebanon": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$160", "price": 8736}], "Kuwait": [{"label": "$10", "price": 562}, {"label": "$20", "price": 1124}, {"label": "$50", "price": 2809}, {"label": "$100", "price": 5618}], "Bahrain": [{"label": "$10", "price": 578}, {"label": "$20", "price": 1155}, {"label": "$50", "price": 2888}, {"label": "$100", "price": 5775}], "Qatar": [{"label": "$10", "price": 572}, {"label": "$20", "price": 1145}, {"label": "$50", "price": 2861}], "Brazil": [{"label": "R$60", "price": 740}]}};
+const COUNTRY_FLAGS = {"valorant": {"Egypt": "🇪🇬", "Turkey": "🇹🇷"}, "battlenet": {"United States": "🇺🇸", "Europe": "🇪🇺"}, "xbox": {"United States": "🇺🇸", "Turkey": "🇹🇷"}, "playstation": {"USA": "🇺🇸", "UAE": "🇦🇪", "UK": "🇬🇧", "Turkey": "🇹🇷", "KSA": "🇸🇦", "Lebanon": "🇱🇧", "Kuwait": "🇰🇼", "Bahrain": "🇧🇭", "Qatar": "🇶🇦", "Brazil": "🇧🇷"}};
 
 function pcBuildCardHTML(item, cfg){
 const price = Number(item.price) || 0;
@@ -2683,30 +2679,114 @@ function pcRenderAllForDoc(docId){
 Object.keys(PRODUCTS_CONFIG).forEach(containerId => {
 if (PRODUCTS_CONFIG[containerId].doc === docId) pcRenderContainer(containerId);
 });
-if (docId === 'playstation') pcRenderPsn();
 }
 
-function pcRenderPsn(){
-const docData = productsCache.playstation;
-if (!docData) return;
-const nameEl = document.getElementById('psn-country-name');
-const country = nameEl ? nameEl.textContent.trim() : 'USA';
-let list = (docData.groups && docData.groups.main) || [];
-list = list.filter(it => PSN_FLAG_TO_COUNTRY[it.flag || ''] === country);
-const el = document.getElementById('psn-prices');
+// ══════════════ Country-based products (PSN / Valorant / Battle.net / Xbox) ══════════════
+// Each of these has a country picker on the page. "builtIn" lists the countries that
+// already exist as real, hand-styled HTML on the page (so we never touch their markup
+// unless the admin has actually saved new prices for them in Firestore). Any OTHER
+// country the admin adds from the dashboard gets its own dropdown option and price grid
+// created here automatically — no HTML/site changes needed for that to work.
+const COUNTRY_CATS = {
+playstation: { dropdown:'psn-country-dropdown', nameEl:'psn-country-name', flagEl:'psn-country-flag',
+singleGrid:true, anchorGrid:'psn-prices', toggleFn:'togglePsnAmt', qtyFn:'changePsnQtyCard', selectFn:'selectPsnCountry' },
+valorant: { dropdown:'valorant-country-dropdown', nameEl:'valorant-country-name', flagEl:'valorant-country-flag',
+builtIn:{ 'Egypt':'valorant-prices', 'Turkey':'valorant-prices-tr' }, anchorGrid:'valorant-prices-tr',
+toggleFn:'toggleValorantAmt', qtyFn:'changeValorantQtyCard', selectFn:'selectValorantCountry' },
+battlenet: { dropdown:'battlenet-country-dropdown', nameEl:'battlenet-country-name', flagEl:'battlenet-country-flag',
+builtIn:{ 'United States':'battlenet-prices', 'Europe':'battlenet-prices-eu' }, anchorGrid:'battlenet-prices-eu',
+toggleFn:'toggleBattlenetAmt', qtyFn:'changeBattlenetQtyCard', selectFn:'selectBattlenetCountry' },
+xbox: { dropdown:'xbox-country-dropdown', nameEl:'xbox-country-name', flagEl:'xbox-country-flag',
+builtIn:{ 'United States':'xbox-prices-us', 'Turkey':'xbox-prices-tr' }, anchorGrid:'xbox-prices-tr',
+toggleFn:'toggleXboxAmt', qtyFn:'changeXboxQtyCard', selectFn:'selectXboxCountry' }
+};
+Object.values(COUNTRY_CATS).forEach(cfg => { if (!cfg.builtIn) cfg.builtIn = {}; });
+
+function ccContainerId(cat, name){
+const cfg = COUNTRY_CATS[cat];
+if (cfg.singleGrid) return cfg.anchorGrid;
+if (cfg.builtIn[name]) return cfg.builtIn[name];
+return 'cc-' + cat + '-' + name.replace(/[^a-zA-Z0-9]+/g,'_');
+}
+
+function ccEnsureContainer(cat, name){
+const cfg = COUNTRY_CATS[cat];
+const id = ccContainerId(cat, name);
+if (!document.getElementById(id)){
+const anchor = document.getElementById(cfg.anchorGrid);
+const div = document.createElement('div');
+div.className = 'price-grid';
+div.id = id;
+div.style.display = 'none';
+anchor.parentNode.insertBefore(div, anchor.nextSibling);
+}
+return id;
+}
+
+function ccRenderCountry(cat, name){
+const cfg = COUNTRY_CATS[cat];
+const id = ccEnsureContainer(cat, name);
+const el = document.getElementById(id);
 if (!el) return;
-el.innerHTML = list.length
-? list.map(item => pcBuildCardHTML(item, { kind:'generic', toggleFn:'togglePsnAmt', qtyFn:'changePsnQtyCard' })).join('')
-: `<div style="grid-column:1/-1;font-size:.8rem;color:#667;padding:10px 0;text-align:center;">No packages available for this country yet</div>`;
+const doc = productsCache[cat];
+const emptyMsg = `<div style="grid-column:1/-1;font-size:.8rem;color:#667;padding:10px 0;text-align:center;">No packages available for this country yet</div>`;
+if (doc && doc.countries && doc.countries[name]){
+const list = doc.countries[name].packages || [];
+el.innerHTML = list.length ? list.map(item => pcBuildCardHTML(item, { kind:'generic', toggleFn:cfg.toggleFn, qtyFn:cfg.qtyFn })).join('') : emptyMsg;
+} else if (!cfg.builtIn[name]){
+// brand-new country with nothing saved for it yet
+const fb = (FALLBACK_COUNTRIES[cat] && FALLBACK_COUNTRIES[cat][name]) || null;
+el.innerHTML = fb ? fb.map(item => pcBuildCardHTML(item, { kind:'generic', toggleFn:cfg.toggleFn, qtyFn:cfg.qtyFn })).join('') : emptyMsg;
+}
+// else: built-in country with no Firestore data yet -> leave the page's static default cards as-is
+}
+
+function ccShowCountry(cat, name){
+const cfg = COUNTRY_CATS[cat];
+if (cfg.singleGrid){ ccRenderCountry(cat, name); return; }
+Object.values(cfg.builtIn).forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+document.querySelectorAll('[id^="cc-' + cat + '-"]').forEach(e => e.style.display = 'none');
+const id = ccEnsureContainer(cat, name);
+ccRenderCountry(cat, name);
+document.getElementById(id).style.display = 'grid';
+}
+
+function ccRenderDropdownExtras(cat){
+const cfg = COUNTRY_CATS[cat];
+const doc = productsCache[cat];
+if (!doc || !doc.countries) return;
+const dd = document.getElementById(cfg.dropdown);
+if (!dd) return;
+Object.keys(doc.countries).forEach(name => {
+if (cfg.builtIn[name]) return; // already has a static option
+const optId = 'cc-opt-' + cat + '-' + name.replace(/[^a-zA-Z0-9]+/g,'_');
+if (document.getElementById(optId)) return; // already injected earlier
+const flag = doc.countries[name].flag || '🌍';
+const opt = document.createElement('div');
+opt.className = 'country-option';
+opt.id = optId;
+opt.textContent = flag + ' ' + name;
+opt.onclick = function(){ window[cfg.selectFn](flag, name); };
+dd.appendChild(opt);
+});
+}
+
+function ccRefresh(cat){
+ccRenderDropdownExtras(cat);
+const nameEl = document.getElementById(COUNTRY_CATS[cat].nameEl);
+const current = nameEl ? nameEl.textContent.trim() : null;
+if (current) ccRenderCountry(cat, current);
 }
 
 function initProductsSync(){
-const docIds = Array.from(new Set(Object.values(PRODUCTS_CONFIG).map(c => c.doc).concat(['playstation'])));
+const countryDocs = Object.keys(COUNTRY_CATS);
+const docIds = Array.from(new Set(Object.values(PRODUCTS_CONFIG).map(c => c.doc).concat(countryDocs)));
 docIds.forEach(docId => {
 fbDb.collection('products').doc(docId).onSnapshot(snap => {
 if (snap.exists){
 productsCache[docId] = snap.data();
 pcRenderAllForDoc(docId);
+if (COUNTRY_CATS[docId]) ccRefresh(docId);
 }
 }, err => console.error('products/' + docId + ' listener failed', err));
 });
@@ -3228,10 +3308,9 @@ document.getElementById('valorant-country-name').textContent = name;
 document.querySelectorAll('#valorant-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
 event.currentTarget.classList.add('selected');
 document.getElementById('valorant-country-dropdown').style.display = 'none';
-document.getElementById('valorant-prices').style.display = name === 'Turkey' ? 'none' : 'grid';
-document.getElementById('valorant-prices-tr').style.display = name === 'Turkey' ? 'grid' : 'none';
+ccShowCountry('valorant', name);
 valorantCart = {};
-document.querySelectorAll('#valorant-prices .pcard, #valorant-prices-tr .pcard').forEach(c => {
+document.querySelectorAll('#valorant-prices .pcard, #valorant-prices-tr .pcard, [id^="cc-valorant-"] .pcard').forEach(c => {
 c.classList.remove('has-qty');
 c.style.borderColor = 'rgba(255,70,85,.25)';
 const qc = c.querySelector('.qty-ctrl');
@@ -3348,10 +3427,9 @@ document.getElementById('battlenet-country-name').textContent = name;
 document.querySelectorAll('#battlenet-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
 event.currentTarget.classList.add('selected');
 document.getElementById('battlenet-country-dropdown').style.display = 'none';
-document.getElementById('battlenet-prices').style.display = name === 'Europe' ? 'none' : 'grid';
-document.getElementById('battlenet-prices-eu').style.display = name === 'Europe' ? 'grid' : 'none';
+ccShowCountry('battlenet', name);
 battlenetCart = {};
-document.querySelectorAll('#battlenet-prices .pcard, #battlenet-prices-eu .pcard').forEach(c => {
+document.querySelectorAll('#battlenet-prices .pcard, #battlenet-prices-eu .pcard, [id^="cc-battlenet-"] .pcard').forEach(c => {
 c.classList.remove('has-qty');
 c.style.borderColor = 'rgba(18,58,143,.25)';
 const qc = c.querySelector('.qty-ctrl');
@@ -4049,8 +4127,7 @@ document.getElementById('xbox-country-name').textContent = name;
 document.querySelectorAll('#xbox-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
 event.currentTarget.classList.add('selected');
 document.getElementById('xbox-country-dropdown').style.display = 'none';
-document.getElementById('xbox-prices-us').style.display = name === 'Turkey' ? 'none' : 'grid';
-document.getElementById('xbox-prices-tr').style.display = name === 'Turkey' ? 'grid' : 'none';
+ccShowCountry('xbox', name);
 xboxCart = {};
 document.querySelectorAll('#xbox-prices .pcard').forEach(c => {
 c.classList.remove('has-qty');
@@ -4153,10 +4230,8 @@ window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blan
 function openPlaystationPage() {
 document.getElementById('playstationPage').classList.add('open');
 document.body.style.overflow = 'hidden';
-if (productsCache.playstation){
-pcRenderPsn();
-} else if (!document.getElementById('psn-prices').innerHTML.trim()) {
-document.getElementById('psn-prices').innerHTML = psnPricesByCountry['USA'];
+if (!document.getElementById('psn-prices').innerHTML.trim()) {
+ccRenderCountry('playstation', document.getElementById('psn-country-name').textContent.trim() || 'USA');
 }
 }
 function closePlaystationPage() {
@@ -4239,11 +4314,7 @@ document.getElementById('psn-country-name').textContent = name;
 document.querySelectorAll('#psn-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
 event.currentTarget.classList.add('selected');
 document.getElementById('psn-country-dropdown').style.display = 'none';
-if (productsCache.playstation){
-pcRenderPsn();
-} else {
-document.getElementById('psn-prices').innerHTML = psnPricesByCountry[name] || '';
-}
+ccShowCountry('playstation', name);
 psnCart = {};
 renderPsnSummary();
 }
