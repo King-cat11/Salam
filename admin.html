@@ -1638,6 +1638,23 @@ const GC_FLAG_NAME = Object.fromEntries(GC_FLAGS.map(f => [f.v, f.label]));
 // Which country groups are expanded per category (key + '|' + flag -> true/false)
 let gcOpenGroups = {};
 
+function gcEscForJs(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// Every row's real "identity" is its country NAME for the four per-country
+// categories (playstation/valorant/battlenet/xbox) — never just its flag,
+// because several countries can share a flag-region (and the site's own
+// per-category names, e.g. "KSA" vs the generic picker's "Saudi Arabia",
+// don't always match the generic flag label). For the rest of the gift
+// cards there's no real "country" concept, so the flag itself is the group.
+function gcGroupId(key, pkg){
+if (GC_COUNTRY_CATS.includes(key)) return pkg.name || gcCountryName(key, pkg.flag || '🌍');
+return pkg.flag || '🌍';
+}
+function gcGroupLabel(key, gid){
+if (GC_COUNTRY_CATS.includes(key)) return gid;
+return GC_FLAG_NAME[gid] || gid;
+}
+
 function buildGCRows(key){
 const container = document.getElementById('gc-admin-' + key);
 const list = giftCardPackages[key];
@@ -1647,22 +1664,23 @@ container.innerHTML = `<div class="empty-hint">No countries yet — press "🌍 
 return;
 }
 
-// Group packages by flag (= country)
+// Group packages by their real identity (see gcGroupId above)
 const groups = {};
 list.forEach(pkg => {
-const flag = pkg.flag || '🌍';
-if (!groups[flag]) groups[flag] = [];
-groups[flag].push(pkg);
+const gid = gcGroupId(key, pkg);
+if (!groups[gid]) groups[gid] = [];
+groups[gid].push(pkg);
 });
 
-container.innerHTML = Object.keys(groups).map(flag => {
-const groupKey = key + '|' + flag;
+container.innerHTML = Object.keys(groups).map(gid => {
+const groupKey = key + '|' + gid;
 const isOpen = !!gcOpenGroups[groupKey];
-const countryName = GC_FLAG_NAME[flag] || flag;
-const rows = groups[flag];
+const countryName = gcGroupLabel(key, gid);
+const rows = groups[gid];
+const gidJs = gcEscForJs(gid);
 return `
 <div class="accordion-section${isOpen ? ' open' : ''}" style="margin-bottom:10px;">
-<div class="accordion-header" onclick="toggleGCCountry('${key}','${flag}')">
+<div class="accordion-header" onclick="toggleGCCountry('${key}','${gidJs}')">
 <span class="name">${countryName}</span>
 <span class="count">${rows.length} package${rows.length === 1 ? '' : 's'}</span>
 <span class="chev">›</span>
@@ -1678,19 +1696,19 @@ ${rows.map(pkg => `
 <input type="number" inputmode="numeric" placeholder="Price" data-key="${key}" data-id="${pkg.id}" data-field="price" value="${pkg.price}">
 <span class="unit">EGP</span>
 </div>
-<button class="remove-row" onclick="removeGCRow('${key}','${flag}',${pkg.id})">×</button>
+<button class="remove-row" onclick="removeGCRow('${key}','${gidJs}',${pkg.id})">×</button>
 </div>
 `).join('')}
-<button class="add-row-btn" onclick="addGCPackageToCountry('${key}','${flag}')">+ Add Package</button>
-<button class="remove-row" style="width:auto;padding:6px 12px;margin-top:8px;" onclick="removeGCCountry('${key}','${flag}')">🗑 Remove ${countryName}</button>
+<button class="add-row-btn" onclick="addGCPackageToCountry('${key}','${gidJs}')">+ Add Package</button>
+<button class="remove-row" style="width:auto;padding:6px 12px;margin-top:8px;" onclick="removeGCCountry('${key}','${gidJs}')">🗑 Remove ${countryName}</button>
 </div>
 </div>
 </div>`;
 }).join('');
 }
 
-function toggleGCCountry(key, flag){
-const groupKey = key + '|' + flag;
+function toggleGCCountry(key, gid){
+const groupKey = key + '|' + gid;
 gcOpenGroups[groupKey] = !gcOpenGroups[groupKey];
 buildGCRows(key);
 }
@@ -1708,27 +1726,36 @@ box.style.display = box.style.display === 'none' ? 'block' : 'none';
 function confirmAddGCCountry(key){
 const select = document.getElementById('gc-addcountry-flag-' + key);
 const flag = select.value;
-giftCardPackages[key].push({ id: gcRowSeq++, flag: flag, label: '', price: '' });
-gcOpenGroups[key + '|' + flag] = true;
+const isCountryCat = GC_COUNTRY_CATS.includes(key);
+const pkg = { id: gcRowSeq++, flag: flag, label: '', price: '' };
+if (isCountryCat) pkg.name = gcCountryName(key, flag);
+giftCardPackages[key].push(pkg);
+const gid = isCountryCat ? pkg.name : flag;
+gcOpenGroups[key + '|' + gid] = true;
 document.getElementById('gc-addcountry-' + key).style.display = 'none';
 buildGCRows(key);
 }
 
-function addGCPackageToCountry(key, flag){
-giftCardPackages[key].push({ id: gcRowSeq++, flag: flag, label: '', price: '' });
-gcOpenGroups[key + '|' + flag] = true;
+function addGCPackageToCountry(key, gid){
+const isCountryCat = GC_COUNTRY_CATS.includes(key);
+const existing = giftCardPackages[key].find(p => gcGroupId(key, p) === gid);
+const flag = existing ? (existing.flag || '🌍') : (isCountryCat ? gcFlagForCountryName(key, gid) : gid);
+const pkg = { id: gcRowSeq++, flag: flag, label: '', price: '' };
+if (isCountryCat) pkg.name = gid;
+giftCardPackages[key].push(pkg);
+gcOpenGroups[key + '|' + gid] = true;
 buildGCRows(key);
 }
 
-function removeGCRow(key, flag, id){
+function removeGCRow(key, gid, id){
 giftCardPackages[key] = giftCardPackages[key].filter(p => p.id !== id);
 buildGCRows(key);
 }
 
-function removeGCCountry(key, flag){
-const countryName = GC_FLAG_NAME[flag] || flag;
+function removeGCCountry(key, gid){
+const countryName = gcGroupLabel(key, gid);
 if (!confirm('Remove all ' + countryName + ' packages for this card?')) return;
-giftCardPackages[key] = giftCardPackages[key].filter(p => (p.flag || '🌍') !== flag);
+giftCardPackages[key] = giftCardPackages[key].filter(p => gcGroupId(key, p) !== gid);
 buildGCRows(key);
 }
 
@@ -1764,7 +1791,7 @@ const rows = [];
 Object.keys(countries).forEach(name => {
 const flag = (countries[name] && countries[name].flag) || gcFlagForCountryName(key, name);
 const packages = (countries[name] && countries[name].packages) || [];
-packages.forEach(p => rows.push({ id: gcRowSeq++, flag, label: p.label, price: p.price }));
+packages.forEach(p => rows.push({ id: gcRowSeq++, flag, name, label: p.label, price: p.price }));
 });
 giftCardPackages[key] = rows;
 } else if (snap.exists && snap.data().groups && snap.data().groups.main){
@@ -1793,7 +1820,7 @@ if (GC_COUNTRY_CATS.includes(key)){
 const countries = {};
 giftCardPackages[key].forEach(pkg => {
 const flag = pkg.flag || '🌍';
-const name = gcCountryName(key, flag);
+const name = pkg.name || gcCountryName(key, flag);
 if (!countries[name]) countries[name] = { flag, packages: [] };
 countries[name].packages.push({ label: pkg.label, price: pkg.price });
 });

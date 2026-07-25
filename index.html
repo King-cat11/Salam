@@ -2565,13 +2565,17 @@ updateAdminBridge();
 });
 
 function recordOrder(gameName, total, message){
+// Orders only get logged to the admin dashboard for signed-in customers.
+// A guest's order still goes out over WhatsApp as normal, it just never
+// gets written to Firestore, so it can never show up in the admin panel.
+if (!cachedUser) return;
 fbDb.collection('orders').add({
 game: gameName,
 total: total,
 message: message || '',
-uid: cachedUser ? cachedUser.uid : null,
-person: (cachedUser && (cachedUser.nickname || cachedUser.email)) || 'Guest',
-email: (cachedUser && cachedUser.email) || '',
+uid: cachedUser.uid,
+person: cachedUser.nickname || cachedUser.email,
+email: cachedUser.email || '',
 status: 'pending',
 createdAt: firebase.firestore.FieldValue.serverTimestamp()
 }).catch(err => console.error('Failed to save order to Firestore', err));
@@ -2784,11 +2788,12 @@ const countryDocs = Object.keys(COUNTRY_CATS);
 const docIds = Array.from(new Set(Object.values(PRODUCTS_CONFIG).map(c => c.doc).concat(countryDocs)));
 docIds.forEach(docId => {
 fbDb.collection('products').doc(docId).onSnapshot(snap => {
-if (snap.exists){
-productsCache[docId] = snap.data();
+productsCache[docId] = snap.exists ? snap.data() : null;
 pcRenderAllForDoc(docId);
+// Refresh country dropdowns/prices even if the doc doesn't exist yet —
+// ccRenderCountry already falls back to FALLBACK_COUNTRIES / static
+// markup on its own, so this just makes sure that path actually runs.
 if (COUNTRY_CATS[docId]) ccRefresh(docId);
-}
 }, err => console.error('products/' + docId + ' listener failed', err));
 });
 }
@@ -3084,8 +3089,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectSteamCountry(flag, name) {
 document.getElementById('steam-country-flag').textContent = flag;
 document.getElementById('steam-country-name').textContent = name;
-document.querySelectorAll('#steam-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#steam-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('steam-country-dropdown').style.display = 'none';
 document.getElementById('steam-prices').innerHTML = steamPricesByCountry[name] || '';
 steamCart = {};
@@ -3197,8 +3204,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectNintendoCountry(flag, name) {
 document.getElementById('nintendo-country-flag').textContent = flag;
 document.getElementById('nintendo-country-name').textContent = name;
-document.querySelectorAll('#nintendo-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#nintendo-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('nintendo-country-dropdown').style.display = 'none';
 }
 let nintendoCart = {};
@@ -3306,8 +3315,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectValorantCountry(flag, name) {
 document.getElementById('valorant-country-flag').textContent = flag;
 document.getElementById('valorant-country-name').textContent = name;
-document.querySelectorAll('#valorant-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#valorant-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('valorant-country-dropdown').style.display = 'none';
 ccShowCountry('valorant', name);
 valorantCart = {};
@@ -3425,8 +3436,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectBattlenetCountry(flag, name) {
 document.getElementById('battlenet-country-flag').textContent = flag;
 document.getElementById('battlenet-country-name').textContent = name;
-document.querySelectorAll('#battlenet-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#battlenet-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('battlenet-country-dropdown').style.display = 'none';
 ccShowCountry('battlenet', name);
 battlenetCart = {};
@@ -3544,8 +3557,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectFc26Country(flag, name) {
 document.getElementById('fc26-country-flag').textContent = flag;
 document.getElementById('fc26-country-name').textContent = name;
-document.querySelectorAll('#fc26-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#fc26-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('fc26-country-dropdown').style.display = 'none';
 fc26Cart = {};
 document.querySelectorAll('#fc26-prices .pcard').forEach(c => {
@@ -3662,8 +3677,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectLolCountry(flag, name) {
 document.getElementById('lol-country-flag').textContent = flag;
 document.getElementById('lol-country-name').textContent = name;
-document.querySelectorAll('#lol-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#lol-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('lol-country-dropdown').style.display = 'none';
 lolCart = {};
 document.querySelectorAll('#lol-prices .pcard').forEach(c => {
@@ -3780,8 +3797,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectGearupCountry(flag, name) {
 document.getElementById('gearup-country-flag').textContent = flag;
 document.getElementById('gearup-country-name').textContent = name;
-document.querySelectorAll('#gearup-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#gearup-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('gearup-country-dropdown').style.display = 'none';
 gearupCart = {};
 document.querySelectorAll('#gearup-prices .pcard').forEach(c => {
@@ -3898,8 +3917,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectRazergoldCountry(flag, name) {
 document.getElementById('razergold-country-flag').textContent = flag;
 document.getElementById('razergold-country-name').textContent = name;
-document.querySelectorAll('#razergold-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#razergold-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('razergold-country-dropdown').style.display = 'none';
 razergoldCart = {};
 document.querySelectorAll('#razergold-prices .pcard').forEach(c => {
@@ -4016,8 +4037,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectMinecraftCountry(flag, name) {
 document.getElementById('minecraft-country-flag').textContent = flag;
 document.getElementById('minecraft-country-name').textContent = name;
-document.querySelectorAll('#minecraft-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#minecraft-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('minecraft-country-dropdown').style.display = 'none';
 }
 let minecraftCart = {};
@@ -4125,8 +4148,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectXboxCountry(flag, name) {
 document.getElementById('xbox-country-flag').textContent = flag;
 document.getElementById('xbox-country-name').textContent = name;
-document.querySelectorAll('#xbox-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#xbox-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('xbox-country-dropdown').style.display = 'none';
 ccShowCountry('xbox', name);
 xboxCart = {};
@@ -4312,8 +4337,10 @@ Brazil: `
 function selectPsnCountry(flag, name) {
 document.getElementById('psn-country-flag').textContent = flag;
 document.getElementById('psn-country-name').textContent = name;
-document.querySelectorAll('#psn-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#psn-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('psn-country-dropdown').style.display = 'none';
 ccShowCountry('playstation', name);
 psnCart = {};
@@ -4424,8 +4451,10 @@ dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 function selectExitLagCountry(flag, name) {
 document.getElementById('exitlag-country-flag').textContent = flag;
 document.getElementById('exitlag-country-name').textContent = name;
-document.querySelectorAll('#exitlag-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
-event.currentTarget.classList.add('selected');
+document.querySelectorAll('#exitlag-country-dropdown .country-option').forEach(o => {
+o.classList.remove('selected');
+if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
+});
 document.getElementById('exitlag-country-dropdown').style.display = 'none';
 }
 let exitlagCart = {};
