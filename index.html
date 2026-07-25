@@ -2555,20 +2555,22 @@ cachedUser = null;
 }
 updateAuthUI();
 updateAdminBridge();
-if (cachedUser && cachedUser.role === 'admin'){
-window.location.href = 'admin.html';
-}
+// Note: we intentionally do NOT force-redirect admins to admin.html here.
+// This listener re-fires on every page load (including when an admin comes
+// back to the main site via the "Admin Panel" bridge button), so redirecting
+// here would just bounce them straight back and forth. The one-time
+// "take me to the admin panel" redirect only happens right after a fresh
+// login, further down in this file.
 });
 
 function recordOrder(gameName, total, message){
-if (!cachedUser){ console.warn('recordOrder: no signed-in user, order not saved to Firestore'); return; }
 fbDb.collection('orders').add({
 game: gameName,
 total: total,
 message: message || '',
-uid: cachedUser.uid,
-person: cachedUser.nickname || cachedUser.email || 'Customer',
-email: cachedUser.email || '',
+uid: cachedUser ? cachedUser.uid : null,
+person: (cachedUser && (cachedUser.nickname || cachedUser.email)) || 'Guest',
+email: (cachedUser && cachedUser.email) || '',
 status: 'pending',
 createdAt: firebase.firestore.FieldValue.serverTimestamp()
 }).catch(err => console.error('Failed to save order to Firestore', err));
