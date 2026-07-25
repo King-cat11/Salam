@@ -751,6 +751,7 @@ cursor:pointer; width:100%; margin-top:26px;
 <a onclick="openMoreGames()">Mobile Games</a>
 <a onclick="openCouponsPage()">Gift Cards</a>
 <a href="https://wa.me/201015507896" target="_blank">Support</a>
+<a id="adminBridgeBtn" href="admin.html" style="display:none;color:var(--gold-lt);font-weight:700;">🛠 Admin Panel</a>
 </div>
 <!-- LOGIN PAGE -->
 <div id="loginPage" class="rpage">
@@ -1816,7 +1817,7 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 </div>
 <!-- SHADAWAT SECTION -->
 <div id="pubg-section-shadawat">
-<div class="price-grid">
+<div class="price-grid" id="pubg-uc-prices">
 <div class="pcard pubg-pcard" data-uc="60" data-price="60" onclick="togglePubgAmt(this,'shadawat')"><span class="rob-val">60 <span class="uc-tag">UC</span></span><span class="sep"></span><span class="egp">60 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" data-uc="120" data-price="120" onclick="togglePubgAmt(this,'shadawat')"><span class="rob-val">120 <span class="uc-tag">UC</span></span><span class="sep"></span><span class="egp">120 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
 <div class="pcard pubg-pcard" data-uc="325" data-price="270" onclick="togglePubgAmt(this,'shadawat')"><span class="rob-val">325 <span class="uc-tag">UC</span></span><span class="sep"></span><span class="egp">270 EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();changePubgQtyCard(this,1)">+</button></div></div>
@@ -1827,7 +1828,7 @@ style="border-color:rgba(127,179,224,.4);text-align:center;font-size:1.05rem;" /
 </div>
 <!-- OROD SECTION -->
 <div id="pubg-section-orod" style="display:none;">
-<div class="price-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
+<div class="price-grid" id="pubg-deals-prices" style="grid-template-columns:repeat(2,1fr);gap:10px;">
 <div class="pcard pubg-pcard" style="padding:14px 10px;" data-uc="حزمة الشراء الأول (170UC + 900G)" data-price="70" onclick="togglePubgAmt(this,'orod')">
 <span class="rob-val" style="font-size:.78rem;line-height:1.3;">First Purchase Pack</span>
 <span class="rob" style="font-size:.68rem;color:#aaa;">170UC + 900G</span>
@@ -2422,7 +2423,7 @@ const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${robloxCart[k].rbx} روبوكس (${robloxCart[k].qty}) (${robloxCart[k].type === 'net' ? 'صافي' : 'غير صافي'})`).join('\n');
 const total = keys.reduce((s,k) => s + robloxCart[k].price * robloxCart[k].qty, 0);
 const msg = `${RLM}🎮 طلب شحن روبلوكس\n${RLM}رابط الـ Game Pass: ${link}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
-recordOrder('Roblox', total);
+recordOrder('Roblox', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 renderRobloxSummary();
@@ -2516,11 +2517,6 @@ closeSettingsGate();
 openLoginPage();
 }
 // ══════════════ Account system (Firebase Auth + Firestore) ══════════════
-// Orders stay local for now (per-device), keyed by the user's Firebase uid.
-const KC_ORDERS_KEY = 'kc_orders';
-function kcGetOrders(){ try { return JSON.parse(localStorage.getItem(KC_ORDERS_KEY)) || {}; } catch(e){ return {}; } }
-function kcSaveOrders(orders){ localStorage.setItem(KC_ORDERS_KEY, JSON.stringify(orders)); }
-
 let cachedUser = null; // { uid, email, nickname, role, provider }
 function getCurrentUser(){ return cachedUser; }
 
@@ -2558,18 +2554,173 @@ catch(e){ console.error('Failed to load user profile', e); cachedUser = null; }
 cachedUser = null;
 }
 updateAuthUI();
+updateAdminBridge();
 if (cachedUser && cachedUser.role === 'admin'){
 window.location.href = 'admin.html';
 }
 });
 
-function recordOrder(gameName, total){
-if (!cachedUser) return;
-const orders = kcGetOrders();
-if (!orders[cachedUser.uid]) orders[cachedUser.uid] = [];
-orders[cachedUser.uid].unshift({ game: gameName, total: total, date: new Date().toISOString(), status: 'pending' });
-kcSaveOrders(orders);
+function recordOrder(gameName, total, message){
+if (!cachedUser){ console.warn('recordOrder: no signed-in user, order not saved to Firestore'); return; }
+fbDb.collection('orders').add({
+game: gameName,
+total: total,
+message: message || '',
+uid: cachedUser.uid,
+person: cachedUser.nickname || cachedUser.email || 'Customer',
+email: cachedUser.email || '',
+status: 'pending',
+createdAt: firebase.firestore.FieldValue.serverTimestamp()
+}).catch(err => console.error('Failed to save order to Firestore', err));
 }
+
+// ══════════════ Live products (Firestore) ══════════════
+// Every priced section on the site (Roblox / PUBG / FIFA / Free Fire / all
+// gift cards) is described here. On load we attach a real-time onSnapshot
+// listener to each Firestore doc in the "products" collection; whenever the
+// admin panel saves new prices, this fires instantly and re-renders the
+// matching card grid(s) on the site. If a doc doesn't exist yet (admin
+// hasn't saved that category yet) we simply leave the page's built-in
+// starter prices in place so the site never looks empty.
+function pcEscAttr(str){ return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function pcEscHtml(str){ return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pcFmtNum(n){ n = Number(n) || 0; return n.toLocaleString('en-US'); }
+
+// containerId -> { doc, group, kind, toggle(item)->string, qty(delta)->string, flagFilter(flag)->bool, extra }
+const PRODUCTS_CONFIG = {
+'rbx-net-prices':      { doc:'roblox',      group:'net',   kind:'roblox' },
+'rbx-gross-prices':    { doc:'roblox',      group:'gross', kind:'roblox' },
+'pubg-uc-prices':      { doc:'pubg',        group:'uc',    kind:'pubg-uc',    toggleArg:"'shadawat'" },
+'pubg-deals-prices':   { doc:'pubg',        group:'deals', kind:'pubg-deals', toggleArg:"'orod'" },
+'fifa-prices-fc':      { doc:'fifa',        group:'fc',     kind:'fifa-coins', fifaType:'FC',   unit:'FC' },
+'fifa-prices-fadha':   { doc:'fifa',        group:'fadha',  kind:'fifa-coins', fifaType:'فضى',  unit:'Silver' },
+'fifa-prices-offers':  { doc:'fifa',        group:'offers', kind:'fifa-offer', fifaType:'نجم' },
+'ff-id-prices':        { doc:'freefire',    group:'id',      kind:'freefire', toggleFn:'toggleFFIdAmt',  qtyFn:'changeFFIdQtyCard'  },
+'ff-acc-prices':       { doc:'freefire',    group:'account', kind:'freefire', toggleFn:'toggleFFAccAmt', qtyFn:'changeFFAccQtyCard' },
+'steam-prices':        { doc:'steam',       group:'main', kind:'generic', toggleFn:'toggleSteamAmt',     qtyFn:'changeSteamQtyCard' },
+'nintendo-prices':     { doc:'nintendo',    group:'main', kind:'generic', toggleFn:'toggleNintendoAmt',  qtyFn:'changeNintendoQtyCard' },
+'fc26-prices':         { doc:'fc26',        group:'main', kind:'generic', toggleFn:'toggleFc26Amt',      qtyFn:'changeFc26QtyCard' },
+'lol-prices':          { doc:'lol',         group:'main', kind:'generic', toggleFn:'toggleLolAmt',       qtyFn:'changeLolQtyCard' },
+'gearup-prices':       { doc:'gearup',      group:'main', kind:'generic', toggleFn:'toggleGearupAmt',    qtyFn:'changeGearupQtyCard' },
+'razergold-prices':    { doc:'razergold',   group:'main', kind:'generic', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard' },
+'minecraft-prices':    { doc:'minecraft',   group:'main', kind:'generic', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard' },
+'exitlag-prices':      { doc:'exitlag',     group:'main', kind:'generic', toggleFn:'toggleExitLagAmt',   qtyFn:'changeExitLagQtyCard' },
+'valorant-prices':     { doc:'valorant',    group:'main', kind:'generic', toggleFn:'toggleValorantAmt',  qtyFn:'changeValorantQtyCard', flagFilter: f => f !== '🇹🇷' },
+'valorant-prices-tr':  { doc:'valorant',    group:'main', kind:'generic', toggleFn:'toggleValorantAmt',  qtyFn:'changeValorantQtyCard', flagFilter: f => f === '🇹🇷' },
+'battlenet-prices':    { doc:'battlenet',   group:'main', kind:'generic', toggleFn:'toggleBattlenetAmt', qtyFn:'changeBattlenetQtyCard', flagFilter: f => f !== '🇪🇺' },
+'battlenet-prices-eu': { doc:'battlenet',   group:'main', kind:'generic', toggleFn:'toggleBattlenetAmt', qtyFn:'changeBattlenetQtyCard', flagFilter: f => f === '🇪🇺' },
+'xbox-prices-us':      { doc:'xbox',        group:'main', kind:'generic', toggleFn:'toggleXboxAmt',      qtyFn:'changeXboxQtyCard', flagFilter: f => f !== '🇹🇷' },
+'xbox-prices-tr':      { doc:'xbox',        group:'main', kind:'generic', toggleFn:'toggleXboxAmt',      qtyFn:'changeXboxQtyCard', flagFilter: f => f === '🇹🇷' },
+};
+// PlayStation is keyed by country name (matches the country picker on the page).
+const PSN_FLAG_TO_COUNTRY = { '🇺🇸':'USA', '🇦🇪':'UAE', '🇬🇧':'UK', '🇹🇷':'Turkey', '🇸🇦':'KSA', '🇱🇧':'Lebanon', '🇰🇼':'Kuwait', '🇧🇭':'Bahrain', '🇶🇦':'Qatar', '🇧🇷':'Brazil' };
+
+const productsCache = {}; // docId -> data
+
+function pcBuildCardHTML(item, cfg){
+const price = Number(item.price) || 0;
+let dataAttrs = `data-price="${price}"`;
+let body = '';
+if (cfg.kind === 'roblox'){
+const rbx = pcFmtNum(item.rbx);
+dataAttrs += ` data-rbx="${pcEscAttr(rbx)}"`;
+body = `<span class="rob-val">${rbx} <span class="uc-tag">Robux</span></span>`;
+} else if (cfg.kind === 'pubg-uc'){
+const uc = pcFmtNum(item.uc);
+dataAttrs += ` data-uc="${pcEscAttr(uc)}"`;
+body = `<span class="rob-val">${uc} <span class="uc-tag">UC</span></span>`;
+} else if (cfg.kind === 'pubg-deals'){
+const label = item.label || '';
+dataAttrs += ` data-uc="${pcEscAttr(label)}"`;
+body = `<span class="rob-val" style="font-size:.82rem;line-height:1.3;">${pcEscHtml(label)}</span>`;
+} else if (cfg.kind === 'fifa-coins'){
+const amt = item.amount;
+dataAttrs += ` data-amt="${amt}" data-type="${pcEscAttr(cfg.fifaType)}"`;
+body = `<span class="rob-val">${pcFmtNum(amt)}</span><span class="rob"> ${cfg.unit}</span>`;
+} else if (cfg.kind === 'fifa-offer'){
+const label = item.label || '';
+dataAttrs += ` data-amt="0" data-type="${pcEscAttr(item.id || cfg.fifaType)}" data-label="${pcEscAttr(label)}"`;
+body = `<span class="rob-val" style="font-size:.9rem;line-height:1.4;font-weight:900;">${pcEscHtml(label)}</span>`;
+} else if (cfg.kind === 'freefire'){
+const label = item.label || '';
+dataAttrs += ` data-diamond="${pcEscAttr(item.id || label)}" data-label="${pcEscAttr(label)}"`;
+body = `<span class="rob-val">${pcEscHtml(label)}</span>`;
+} else { // generic
+const label = item.label || '';
+dataAttrs += ` data-label="${pcEscAttr(label)}"`;
+body = `<span class="rob-val">${pcEscHtml(label)}</span>`;
+}
+const isPubg = cfg.kind === 'pubg-uc' || cfg.kind === 'pubg-deals';
+const isFifa = cfg.kind === 'fifa-coins' || cfg.kind === 'fifa-offer';
+const toggleCall = isPubg ? `togglePubgAmt(this,${cfg.toggleArg})`
+: cfg.kind === 'roblox' ? `toggleRobloxAmt(this,'${cfg.group}')`
+: isFifa ? 'addFifaItem(this)'
+: `${cfg.toggleFn}(this)`;
+const qtyFn = isPubg ? 'changePubgQtyCard'
+: cfg.kind === 'roblox' ? 'changeRobloxQtyCard'
+: isFifa ? 'changeFifaQtyCard'
+: cfg.qtyFn;
+return `<div class="pcard" ${dataAttrs} onclick="${toggleCall}">${body}<span class="sep"></span><span class="egp">${pcFmtNum(price)} EGP</span><div class="qty-ctrl" style="display:none;"><button class="qty-btn" onclick="event.stopPropagation();${qtyFn}(this,-1)">−</button><span class="qty-num">0</span><button class="qty-btn" onclick="event.stopPropagation();${qtyFn}(this,1)">+</button></div></div>`;
+}
+
+function pcRenderContainer(containerId){
+const cfg = PRODUCTS_CONFIG[containerId];
+if (!cfg) return;
+const docData = productsCache[cfg.doc];
+if (!docData) return; // no Firestore data yet -> keep the page's starter prices
+let list = (docData.groups && docData.groups[cfg.group]) || [];
+if (cfg.flagFilter) list = list.filter(it => cfg.flagFilter(it.flag || ''));
+const el = document.getElementById(containerId);
+if (!el) return;
+el.innerHTML = list.length
+? list.map(item => pcBuildCardHTML(item, cfg)).join('')
+: `<div style="grid-column:1/-1;font-size:.8rem;color:#667;padding:10px 0;text-align:center;">No packages available right now</div>`;
+}
+
+function pcRenderAllForDoc(docId){
+Object.keys(PRODUCTS_CONFIG).forEach(containerId => {
+if (PRODUCTS_CONFIG[containerId].doc === docId) pcRenderContainer(containerId);
+});
+if (docId === 'playstation') pcRenderPsn();
+}
+
+function pcRenderPsn(){
+const docData = productsCache.playstation;
+if (!docData) return;
+const nameEl = document.getElementById('psn-country-name');
+const country = nameEl ? nameEl.textContent.trim() : 'USA';
+let list = (docData.groups && docData.groups.main) || [];
+list = list.filter(it => PSN_FLAG_TO_COUNTRY[it.flag || ''] === country);
+const el = document.getElementById('psn-prices');
+if (!el) return;
+el.innerHTML = list.length
+? list.map(item => pcBuildCardHTML(item, { kind:'generic', toggleFn:'togglePsnAmt', qtyFn:'changePsnQtyCard' })).join('')
+: `<div style="grid-column:1/-1;font-size:.8rem;color:#667;padding:10px 0;text-align:center;">No packages available for this country yet</div>`;
+}
+
+function initProductsSync(){
+const docIds = Array.from(new Set(Object.values(PRODUCTS_CONFIG).map(c => c.doc).concat(['playstation'])));
+docIds.forEach(docId => {
+fbDb.collection('products').doc(docId).onSnapshot(snap => {
+if (snap.exists){
+productsCache[docId] = snap.data();
+pcRenderAllForDoc(docId);
+}
+}, err => console.error('products/' + docId + ' listener failed', err));
+});
+}
+initProductsSync();
+
+// ══════════════ Admin bridge button ══════════════
+// Shown only to signed-in accounts whose Firestore role is "admin" — lets
+// them jump to the admin panel from the normal site (they're also
+// auto-redirected there on login, but this gives them a way back and forth).
+function updateAdminBridge(){
+const btn = document.getElementById('adminBridgeBtn');
+if (!btn) return;
+btn.style.display = (cachedUser && cachedUser.role === 'admin') ? 'block' : 'none';
+}
+
 function updateAuthUI(){
 const link = document.getElementById('sidebarAuthLink');
 const avatar = document.getElementById('sidebarAvatar');
@@ -2604,6 +2755,7 @@ document.getElementById('loginEmail').value = '';
 document.getElementById('loginPassword').value = '';
 closeLoginPage();
 updateAuthUI();
+updateAdminBridge();
 if (cachedUser && cachedUser.role === 'admin'){
 window.location.href = 'admin.html';
 return;
@@ -2944,7 +3096,7 @@ const country = document.getElementById('steam-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${steamCart[k].qty}) ${steamCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + steamCart[k].price * steamCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Steam\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Steam', total);
+recordOrder('Steam', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openNintendoPage() {
@@ -3053,7 +3205,7 @@ const country = document.getElementById('nintendo-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${nintendoCart[k].qty}) ${nintendoCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + nintendoCart[k].price * nintendoCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Nintendo Switch\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Nintendo Switch', total);
+recordOrder('Nintendo Switch', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openValorantPage() {
@@ -3173,7 +3325,7 @@ const country = document.getElementById('valorant-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${valorantCart[k].qty}) ${valorantCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + valorantCart[k].price * valorantCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Valorant\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Valorant', total);
+recordOrder('Valorant', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openBattlenetPage() {
@@ -3293,7 +3445,7 @@ const country = document.getElementById('battlenet-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${battlenetCart[k].qty}) ${battlenetCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + battlenetCart[k].price * battlenetCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Battle.net\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Battle.net', total);
+recordOrder('Battle.net', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openFc26Page() {
@@ -3411,7 +3563,7 @@ const country = document.getElementById('fc26-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${fc26Cart[k].qty}) ${fc26Cart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + fc26Cart[k].price * fc26Cart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء FC 26 FC Points\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('FC 26', total);
+recordOrder('FC 26', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openLolPage() {
@@ -3529,7 +3681,7 @@ const country = document.getElementById('lol-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${lolCart[k].qty}) ${lolCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + lolCart[k].price * lolCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء League of Legends\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('League of Legends', total);
+recordOrder('League of Legends', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openGearupPage() {
@@ -3647,7 +3799,7 @@ const country = document.getElementById('gearup-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${gearupCart[k].qty}) ${gearupCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + gearupCart[k].price * gearupCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء GearUP Booster PC\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('GearUP Booster', total);
+recordOrder('GearUP Booster', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openRazergoldPage() {
@@ -3765,7 +3917,7 @@ const country = document.getElementById('razergold-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${razergoldCart[k].qty}) ${razergoldCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + razergoldCart[k].price * razergoldCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Razer Gold\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Razer Gold', total);
+recordOrder('Razer Gold', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openMinecraftPage() {
@@ -3874,7 +4026,7 @@ const country = document.getElementById('minecraft-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${minecraftCart[k].qty}) ${minecraftCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + minecraftCart[k].price * minecraftCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Minecraft\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Minecraft', total);
+recordOrder('Minecraft', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openXboxPage() {
@@ -3993,13 +4145,15 @@ const country = document.getElementById('xbox-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${xboxCart[k].qty}) ${xboxCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + xboxCart[k].price * xboxCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء Xbox\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('Xbox', total);
+recordOrder('Xbox', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openPlaystationPage() {
 document.getElementById('playstationPage').classList.add('open');
 document.body.style.overflow = 'hidden';
-if (!document.getElementById('psn-prices').innerHTML.trim()) {
+if (productsCache.playstation){
+pcRenderPsn();
+} else if (!document.getElementById('psn-prices').innerHTML.trim()) {
 document.getElementById('psn-prices').innerHTML = psnPricesByCountry['USA'];
 }
 }
@@ -4083,7 +4237,11 @@ document.getElementById('psn-country-name').textContent = name;
 document.querySelectorAll('#psn-country-dropdown .country-option').forEach(o => o.classList.remove('selected'));
 event.currentTarget.classList.add('selected');
 document.getElementById('psn-country-dropdown').style.display = 'none';
+if (productsCache.playstation){
+pcRenderPsn();
+} else {
 document.getElementById('psn-prices').innerHTML = psnPricesByCountry[name] || '';
+}
 psnCart = {};
 renderPsnSummary();
 }
@@ -4174,7 +4332,7 @@ const country = document.getElementById('psn-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${psnCart[k].qty}) ${psnCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + psnCart[k].price * psnCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء PlayStation\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('PlayStation', total);
+recordOrder('PlayStation', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 function openExitLagPage() {
@@ -4283,7 +4441,7 @@ const country = document.getElementById('exitlag-country-name').textContent;
 const items = keys.map(k => `${RLM}• (${exitlagCart[k].qty}) ${exitlagCart[k].label.replace(/^[^-]+-\s*/, '')}`).join('\n');
 const total = keys.reduce((s,k) => s + exitlagCart[k].price * exitlagCart[k].qty, 0);
 const msg = `${RLM}📦طلب شراء ExitLag\n${RLM}🌍البلد: ${country}\n${RLM}🛒الطلب:\n${items}\n${RLM}💰السعر: ${total} EGP`;
-recordOrder('ExitLag', total);
+recordOrder('ExitLag', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 // ══════════════ PUBG card system (fully migrated) ══════════════
@@ -4414,7 +4572,7 @@ const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${pubgLabel(pubgCart[k])} (${pubgCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + pubgCart[k].price * pubgCart[k].qty, 0);
 const msg = `${RLM}🎮 طلب شحن ببجي\n${RLM}الـ ID: ${idVal}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
-recordOrder('PUBG Mobile', total);
+recordOrder('PUBG Mobile', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 // ══════════════ FIFA card system (fully migrated) ══════════════
@@ -4545,7 +4703,7 @@ err.textContent = '';
 const RLM = '\u200F';
 const itemsList = items.map(i => `${RLM}• ${i.label} (${i.qty})`).join('\n');
 const msg = `${RLM}⚽ طلب شحن فيفا\n${RLM}📧 الإيميل: ${user}\n${RLM}📦 الطلب:\n${itemsList}\n${RLM}السعر: ${totalPrice} EGP`;
-recordOrder('FIFA', totalPrice);
+recordOrder('FIFA', totalPrice, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 // ══════════════ Free Fire card system (fully migrated) ══════════════
@@ -4677,7 +4835,7 @@ const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${ffIdCart[k].label} (${ffIdCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + ffIdCart[k].price * ffIdCart[k].qty, 0);
 const msg = `${RLM}طلب شحن فري فاير (ID)\n${RLM}الـ ID: ${idVal}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
-recordOrder('Free Fire (ID)', total);
+recordOrder('Free Fire (ID)', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 // ── FF ACCOUNT CART ──
@@ -4773,7 +4931,7 @@ const RLM = '\u200F';
 const items = keys.map(k => `${RLM}• ${ffAccCart[k].label} (${ffAccCart[k].qty})`).join('\n');
 const total = keys.reduce((s,k) => s + ffAccCart[k].price * ffAccCart[k].qty, 0);
 const msg = `${RLM}طلب شحن فري فاير (حساب)\n${RLM}📧 الإيميل: ${user}\n${RLM}الباسورد: ${pass}\n${RLM}🔗 نوع الربط: ${link}\n${RLM}📦 الطلب:\n${items}\n${RLM}السعر: ${total} EGP`;
-recordOrder('Free Fire (Account)', total);
+recordOrder('Free Fire (Account)', total, msg);
 window.open('https://wa.me/201015507896?text=' + encodeURIComponent(msg), '_blank');
 }
 updateAuthUI();
