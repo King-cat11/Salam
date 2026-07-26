@@ -2699,22 +2699,38 @@ xbox: { dropdown:'xbox-country-dropdown', nameEl:'xbox-country-name', flagEl:'xb
 builtIn:{ 'United States':'xbox-prices-us', 'Turkey':'xbox-prices-tr' }, anchorGrid:'xbox-prices-tr',
 toggleFn:'toggleXboxAmt', qtyFn:'changeXboxQtyCard', selectFn:'selectXboxCountry' },
 steam: { dropdown:'steam-country-dropdown', nameEl:'steam-country-name', flagEl:'steam-country-flag',
-singleGrid:true, anchorGrid:'steam-prices', toggleFn:'toggleSteamAmt', qtyFn:'changeSteamQtyCard', selectFn:'selectSteamCountry' },
+singleGrid:true, anchorGrid:'steam-prices', toggleFn:'toggleSteamAmt', qtyFn:'changeSteamQtyCard', selectFn:'selectSteamCountry',
+builtIn:{ 'Egypt':'steam-prices', 'Ukraine':'steam-prices', 'China':'steam-prices', 'India':'steam-prices', 'Brazil':'steam-prices', 'Europe':'steam-prices', 'Saudi Arabia':'steam-prices' } },
 nintendo: { dropdown:'nintendo-country-dropdown', nameEl:'nintendo-country-name', flagEl:'nintendo-country-flag',
-singleGrid:true, anchorGrid:'nintendo-prices', toggleFn:'toggleNintendoAmt', qtyFn:'changeNintendoQtyCard', selectFn:'selectNintendoCountry' },
+singleGrid:true, anchorGrid:'nintendo-prices', toggleFn:'toggleNintendoAmt', qtyFn:'changeNintendoQtyCard', selectFn:'selectNintendoCountry',
+builtIn:{ 'USA':'nintendo-prices' } },
 fc26: { dropdown:'fc26-country-dropdown', nameEl:'fc26-country-name', flagEl:'fc26-country-flag',
-singleGrid:true, anchorGrid:'fc26-prices', toggleFn:'toggleFc26Amt', qtyFn:'changeFc26QtyCard', selectFn:'selectFc26Country' },
+singleGrid:true, anchorGrid:'fc26-prices', toggleFn:'toggleFc26Amt', qtyFn:'changeFc26QtyCard', selectFn:'selectFc26Country',
+builtIn:{ 'Global':'fc26-prices' } },
 lol: { dropdown:'lol-country-dropdown', nameEl:'lol-country-name', flagEl:'lol-country-flag',
-singleGrid:true, anchorGrid:'lol-prices', toggleFn:'toggleLolAmt', qtyFn:'changeLolQtyCard', selectFn:'selectLolCountry' },
+singleGrid:true, anchorGrid:'lol-prices', toggleFn:'toggleLolAmt', qtyFn:'changeLolQtyCard', selectFn:'selectLolCountry',
+builtIn:{ 'Egypt':'lol-prices' } },
 gearup: { dropdown:'gearup-country-dropdown', nameEl:'gearup-country-name', flagEl:'gearup-country-flag',
-singleGrid:true, anchorGrid:'gearup-prices', toggleFn:'toggleGearupAmt', qtyFn:'changeGearupQtyCard', selectFn:'selectGearupCountry' },
+singleGrid:true, anchorGrid:'gearup-prices', toggleFn:'toggleGearupAmt', qtyFn:'changeGearupQtyCard', selectFn:'selectGearupCountry',
+builtIn:{ 'Global':'gearup-prices' } },
 razergold: { dropdown:'razergold-country-dropdown', nameEl:'razergold-country-name', flagEl:'razergold-country-flag',
-singleGrid:true, anchorGrid:'razergold-prices', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard', selectFn:'selectRazergoldCountry' },
+singleGrid:true, anchorGrid:'razergold-prices', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard', selectFn:'selectRazergoldCountry',
+builtIn:{ 'Turkey':'razergold-prices' } },
 minecraft: { dropdown:'minecraft-country-dropdown', nameEl:'minecraft-country-name', flagEl:'minecraft-country-flag',
-singleGrid:true, anchorGrid:'minecraft-prices', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard', selectFn:'selectMinecraftCountry' },
+singleGrid:true, anchorGrid:'minecraft-prices', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard', selectFn:'selectMinecraftCountry',
+builtIn:{ 'Global':'minecraft-prices' } },
 exitlag: { dropdown:'exitlag-country-dropdown', nameEl:'exitlag-country-name', flagEl:'exitlag-country-flag',
-singleGrid:true, anchorGrid:'exitlag-prices', toggleFn:'toggleExitLagAmt', qtyFn:'changeExitLagQtyCard', selectFn:'selectExitLagCountry' }
+singleGrid:true, anchorGrid:'exitlag-prices', toggleFn:'toggleExitLagAmt', qtyFn:'changeExitLagQtyCard', selectFn:'selectExitLagCountry',
+builtIn:{ 'Global':'exitlag-prices' } }
 };
+// IMPORTANT: every country name that already exists as hand-written HTML in a
+// dropdown (<div class="country-option">...) MUST be listed in that card's
+// builtIn map above — even for singleGrid cards that don't use builtIn for
+// their price grid. This is what stops ccRenderDropdownExtras (below) from
+// re-injecting a second, duplicate option for that same country once its data
+// syncs in from Firestore. Forgetting a name here is exactly what caused
+// Steam/Nintendo/FC26/LoL/GearUp/RazerGold/Minecraft/ExitLag to each show
+// their countries twice in the dropdown.
 Object.values(COUNTRY_CATS).forEach(cfg => { if (!cfg.builtIn) cfg.builtIn = {}; });
 
 function ccContainerId(cat, name){

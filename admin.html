@@ -1729,10 +1729,23 @@ function confirmAddGCCountry(key){
 const select = document.getElementById('gc-addcountry-flag-' + key);
 const flag = select.value;
 const isCountryCat = GC_COUNTRY_CATS.includes(key);
+const gid = isCountryCat ? gcCountryName(key, flag) : flag;
+
+// Hard rule: a country/flag can never be added twice to the same card.
+// If it's already here, just open its existing group instead of creating
+// a second (empty, confusing) entry for the same country.
+const alreadyExists = giftCardPackages[key].some(p => gcGroupId(key, p) === gid);
+if (alreadyExists){
+alert('البلد ده موجود بالفعل في الكارت ده. هفتحلك المجموعة الموجودة عشان تضيف عليها.');
+gcOpenGroups[key + '|' + gid] = true;
+document.getElementById('gc-addcountry-' + key).style.display = 'none';
+buildGCRows(key);
+return;
+}
+
 const pkg = { id: gcRowSeq++, flag: flag, label: '', price: '' };
-if (isCountryCat) pkg.name = gcCountryName(key, flag);
+if (isCountryCat) pkg.name = gid;
 giftCardPackages[key].push(pkg);
-const gid = isCountryCat ? pkg.name : flag;
 gcOpenGroups[key + '|' + gid] = true;
 document.getElementById('gc-addcountry-' + key).style.display = 'none';
 buildGCRows(key);
