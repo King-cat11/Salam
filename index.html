@@ -2556,6 +2556,7 @@ cachedUser = null;
 }
 updateAuthUI();
 updateAdminBridge();
+subscribeMyOrders(cachedUser ? cachedUser.uid : null);
 // Note: we intentionally do NOT force-redirect admins to admin.html here.
 // This listener re-fires on every page load (including when an admin comes
 // back to the main site via the "Admin Panel" bridge button), so redirecting
@@ -2563,6 +2564,27 @@ updateAdminBridge();
 // "take me to the admin panel" redirect only happens right after a fresh
 // login, further down in this file.
 });
+
+// ══════════════ My Orders (Firestore, real-time) ══════════════
+// Mirrors this signed-in customer's own orders from the same "orders"
+// collection the admin panel reads from. This replaces an old, broken
+// kcGetOrders() reference that didn't exist anywhere in the file — every
+// time a signed-in customer opened Settings, that undefined-function error
+// silently killed openProfilePage() before it could add the "open" class,
+// so the Settings page never appeared at all.
+let myOrders = [];
+let myOrdersUnsub = null;
+function subscribeMyOrders(uid){
+if (myOrdersUnsub){ myOrdersUnsub(); myOrdersUnsub = null; }
+if (!uid){ myOrders = []; renderProfileOrders(); return; }
+myOrdersUnsub = fbDb.collection('orders').where('uid', '==', uid).onSnapshot(snap => {
+myOrders = snap.docs.map(doc => {
+const d = doc.data();
+return { id: doc.id, game: d.game || '', total: d.total || 0, status: d.status || 'pending', createdAt: d.createdAt || null };
+});
+renderProfileOrders();
+}, err => console.error('Failed to load my orders', err));
+}
 
 function recordOrder(gameName, total, message){
 // Orders only get logged to the admin dashboard for signed-in customers.
@@ -3000,18 +3022,22 @@ renderProfileOrders();
 function renderProfileOrders(){
 const user = getCurrentUser();
 const list = document.getElementById('profileOrdersList');
-if (!user) return;
-const orders = (kcGetOrders()[user.uid] || []).filter(o => (o.status || 'pending') === currentOrdersSubTab);
+if (!list) return;
+if (!user){ list.innerHTML = `<div class="profile-empty">No orders yet</div>`; return; }
+const orders = myOrders.filter(o => (o.status || 'pending') === currentOrdersSubTab);
 if (!orders.length){
 list.innerHTML = `<div class="profile-empty">No ${currentOrdersSubTab} orders</div>`;
 return;
 }
 list.innerHTML = orders.map(o => {
-const d = new Date(o.date);
-const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+let dateStr = '';
+if (o.createdAt && typeof o.createdAt.toDate === 'function'){
+const d = o.createdAt.toDate();
+dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
 return `<div class="order-row">
 <div class="order-row-top">
-<span class="order-game">${o.game}</span>
+<span class="order-game">${pcEscHtml(o.game)}</span>
 <span class="order-total">${o.total} EGP</span>
 </div>
 <div class="order-date">${dateStr}</div>
