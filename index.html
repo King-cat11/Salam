@@ -2574,16 +2574,25 @@ subscribeMyOrders(cachedUser ? cachedUser.uid : null);
 // so the Settings page never appeared at all.
 let myOrders = [];
 let myOrdersUnsub = null;
+let myOrdersError = null;
 function subscribeMyOrders(uid){
 if (myOrdersUnsub){ myOrdersUnsub(); myOrdersUnsub = null; }
+myOrdersError = null;
 if (!uid){ myOrders = []; renderProfileOrders(); return; }
 myOrdersUnsub = fbDb.collection('orders').where('uid', '==', uid).onSnapshot(snap => {
+myOrdersError = null;
 myOrders = snap.docs.map(doc => {
 const d = doc.data();
 return { id: doc.id, game: d.game || '', total: d.total || 0, status: d.status || 'pending', createdAt: d.createdAt || null };
 });
 renderProfileOrders();
-}, err => console.error('Failed to load my orders', err));
+}, err => {
+console.error('Failed to load my orders', err);
+myOrdersError = (err && err.code === 'permission-denied')
+? 'مفيش صلاحية تشوف طلباتك — لازم تتظبط صلاحيات القراءة في Firestore Rules.'
+: 'حصل خطأ وإحنا بنجيب طلباتك، حاول تاني.';
+renderProfileOrders();
+});
 }
 
 function recordOrder(gameName, total, message){
@@ -3024,7 +3033,13 @@ const user = getCurrentUser();
 const list = document.getElementById('profileOrdersList');
 if (!list) return;
 if (!user){ list.innerHTML = `<div class="profile-empty">No orders yet</div>`; return; }
-const orders = myOrders.filter(o => (o.status || 'pending') === currentOrdersSubTab);
+if (myOrdersError){ list.innerHTML = `<div class="profile-empty" style="color:#e05555;">${pcEscHtml(myOrdersError)}</div>`; return; }
+// The admin panel stores completed orders with status:'done' (not
+// 'completed') — this tab's id/label say "Completed" but must match
+// against 'done', otherwise a finished order matches neither tab and
+// just vanishes for the customer.
+const wantedStatus = currentOrdersSubTab === 'completed' ? 'done' : currentOrdersSubTab;
+const orders = myOrders.filter(o => (o.status || 'pending') === wantedStatus);
 if (!orders.length){
 list.innerHTML = `<div class="profile-empty">No ${currentOrdersSubTab} orders</div>`;
 return;
