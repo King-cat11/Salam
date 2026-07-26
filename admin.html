@@ -1800,11 +1800,25 @@ fbDb.collection('products').doc(key).onSnapshot(snap => {
 // exactly what caused duplicate/ghost entries before.
 const countries = (snap.exists && snap.data().countries) || null;
 if (countries){
+// Merge any keys that are really the same country (stray whitespace or
+// case differences, e.g. from an old duplicate write) into one entry
+// before rendering, so nothing ever shows twice. Saving afterwards
+// writes back this cleaned-up version, permanently fixing the doc.
+const merged = {};
+const canonicalFor = {};
+Object.keys(countries).forEach(rawName => {
+const norm = rawName.trim().toLowerCase();
+const canonical = canonicalFor[norm] || rawName.trim();
+canonicalFor[norm] = canonical;
+const entry = countries[rawName] || {};
+if (!merged[canonical]) merged[canonical] = { flag: entry.flag, packages: [] };
+if (entry.flag && !merged[canonical].flag) merged[canonical].flag = entry.flag;
+(entry.packages || []).forEach(p => merged[canonical].packages.push(p));
+});
 const rows = [];
-Object.keys(countries).forEach(name => {
-const flag = (countries[name] && countries[name].flag) || gcFlagForCountryName(key, name);
-const packages = (countries[name] && countries[name].packages) || [];
-packages.forEach(p => rows.push({ id: gcRowSeq++, flag, name, label: p.label, price: p.price }));
+Object.keys(merged).forEach(name => {
+const flag = merged[name].flag || gcFlagForCountryName(key, name);
+merged[name].packages.forEach(p => rows.push({ id: gcRowSeq++, flag, name, label: p.label, price: p.price }));
 });
 giftCardPackages[key] = rows;
 } else {

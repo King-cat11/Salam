@@ -2738,15 +2738,38 @@ anchor.parentNode.insertBefore(div, anchor.nextSibling);
 return id;
 }
 
+// Merges any country keys in the saved data that are really the same country
+// (stray whitespace or case differences — e.g. left over from an old admin
+// save) into one entry, so a country can never appear twice in the dropdown
+// or show split/duplicated prices. Both ccRenderCountry and
+// ccRenderDropdownExtras read through this instead of touching doc.countries
+// directly.
+function ccMergedCountries(cat){
+const doc = productsCache[cat];
+if (!doc || !doc.countries) return null;
+const merged = {};
+const canonicalFor = {};
+Object.keys(doc.countries).forEach(rawName => {
+const norm = rawName.trim().toLowerCase();
+const canonical = canonicalFor[norm] || rawName.trim();
+canonicalFor[norm] = canonical;
+const entry = doc.countries[rawName] || {};
+if (!merged[canonical]) merged[canonical] = { flag: entry.flag, packages: [] };
+if (entry.flag && !merged[canonical].flag) merged[canonical].flag = entry.flag;
+(entry.packages || []).forEach(p => merged[canonical].packages.push(p));
+});
+return merged;
+}
+
 function ccRenderCountry(cat, name){
 const cfg = COUNTRY_CATS[cat];
 const id = ccEnsureContainer(cat, name);
 const el = document.getElementById(id);
 if (!el) return;
-const doc = productsCache[cat];
+const countries = ccMergedCountries(cat);
 const emptyMsg = `<div style="grid-column:1/-1;font-size:.8rem;color:#667;padding:10px 0;text-align:center;">No packages available for this country yet</div>`;
-if (doc && doc.countries && doc.countries[name]){
-const list = doc.countries[name].packages || [];
+if (countries && countries[name]){
+const list = countries[name].packages || [];
 el.innerHTML = list.length ? list.map(item => pcBuildCardHTML(item, { kind:'generic', toggleFn:cfg.toggleFn, qtyFn:cfg.qtyFn })).join('') : emptyMsg;
 } else if (!cfg.builtIn[name]){
 // brand-new country with nothing saved for it yet
@@ -2768,15 +2791,15 @@ document.getElementById(id).style.display = 'grid';
 
 function ccRenderDropdownExtras(cat){
 const cfg = COUNTRY_CATS[cat];
-const doc = productsCache[cat];
-if (!doc || !doc.countries) return;
+const countries = ccMergedCountries(cat);
+if (!countries) return;
 const dd = document.getElementById(cfg.dropdown);
 if (!dd) return;
-Object.keys(doc.countries).forEach(name => {
+Object.keys(countries).forEach(name => {
 if (cfg.builtIn[name]) return; // already has a static option
 const optId = 'cc-opt-' + cat + '-' + name.replace(/[^a-zA-Z0-9]+/g,'_');
 if (document.getElementById(optId)) return; // already injected earlier
-const flag = doc.countries[name].flag || '🌍';
+const flag = countries[name].flag || '🌍';
 const opt = document.createElement('div');
 opt.className = 'country-option';
 opt.id = optId;
