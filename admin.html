@@ -1794,9 +1794,12 @@ return '🌍';
 
 Object.keys(giftCardPackages).forEach(key => {
 fbDb.collection('products').doc(key).onSnapshot(snap => {
-if (snap.exists && GC_COUNTRY_CATS.includes(key) && snap.data().countries){
-// Country schema -> flatten into {id, flag, label, price} rows for this editor
-const countries = snap.data().countries;
+// All 12 gift-card games use ONE schema: countries -> {flag, packages[]}.
+// No legacy flat-list fallback here, ever — that mixed-schema situation
+// (a doc having both old groups.main AND new countries data at once) is
+// exactly what caused duplicate/ghost entries before.
+const countries = (snap.exists && snap.data().countries) || null;
+if (countries){
 const rows = [];
 Object.keys(countries).forEach(name => {
 const flag = (countries[name] && countries[name].flag) || gcFlagForCountryName(key, name);
@@ -1804,8 +1807,6 @@ const packages = (countries[name] && countries[name].packages) || [];
 packages.forEach(p => rows.push({ id: gcRowSeq++, flag, name, label: p.label, price: p.price }));
 });
 giftCardPackages[key] = rows;
-} else if (snap.exists && snap.data().groups && snap.data().groups.main){
-giftCardPackages[key] = snap.data().groups.main;
 } else {
 giftCardPackages[key] = JSON.parse(JSON.stringify(SEED_PRODUCTS.giftcards[key] || []));
 }
@@ -1844,15 +1845,24 @@ alert('Saved — the live site is now showing these prices.');
 }).catch(err => { console.error('Failed to save ' + key + ' prices', err); alert('Could not save, please try again.'); });
 }
 
-// ══════════════ One-time repair (runs once ever, then never again) ══════════════
-// The categories below had broken/missing country data (e.g. Steam losing every
-// country but Egypt, Nintendo/FC26/LoL/GearUp/RazerGold/Minecraft/ExitLag never
-// having real per-country data at all). This fills in ONLY the countries that
-// are completely missing or empty, using the built-in seed prices, and then
-// records itself as "done" in Firestore so it can never run again. That means:
-// after this runs once, deleting or editing a country here is permanent — there
-// is no ongoing auto-restore fighting your edits.
-const GC_REPAIR_KEYS = ['steam','nintendo','fc26','lol','gearup','razergold','minecraft','exitlag'];
+// ══════════════ One-time migration + repair (runs once ever per game, then never again) ══════════════
+// Every gift-card game listed here now uses exactly one schema in Firestore —
+// countries -> {flag, packages[]} — nothing else. Some of these docs still had
+// leftover data in the old flat "groups.main" shape from before this game was
+// switched over; if the migration below only added seed defaults without
+// folding that in, both shapes would sit in the same doc at once, which is
+// what caused things like Minecraft showing two separate "Global" groups and
+// other games showing stale/empty data. So this migration, for each game:
+//   1) starts from whatever is already in `countries` (kept as-is),
+//   2) folds any old `groups.main` packages into that same schema so nothing
+//      you'd already set is lost,
+//   3) fills in ONLY the countries that are still completely missing, using
+//      the built-in default prices,
+//   4) writes the result back as the one and only `countries` field, and
+//      marks the doc as migrated so this never runs on it again.
+// After a game is marked migrated, editing or deleting a country here is
+// permanent — nothing will ever auto-restore it again.
+const GC_REPAIR_KEYS = ['steam','nintendo','fc26','lol','gearup','razergold','minecraft','exitlag','playstation','valorant','battlenet','xbox'];
 const GC_DEFAULT_COUNTRIES = {};
 GC_REPAIR_KEYS.forEach(key => {
 const seed = SEED_PRODUCTS.giftcards[key] || [];
@@ -1866,54 +1876,36 @@ map[name].packages.push({ label: p.label, price: p.price });
 GC_DEFAULT_COUNTRIES[key] = map;
 });
 
-function gcRunOneTimeRepair(){
-const metaRef = fbDb.collection('meta').doc('country_repair_v1');
-metaRef.get().then(metaSnap => {
-const already = (metaSnap.exists && metaSnap.data().done) || {};
-const todo = Object.keys(GC_DEFAULT_COUNTRIES).filter(k => !already[k]);
-if (!todo.length) return; // already repaired everything, once — nothing more to do, ever
-Promise.all(todo.map(key => {
-const defaults = GC_DEFAULT_COUNTRIES[key];
-return fbDb.collection('products').doc(key).get().then(snap => {
+function gcMigrateAndRepair(key){
+fbDb.collection('products').doc(key).get().then(snap => {
 const data = snap.exists ? (snap.data() || {}) : {};
+if (data.gc_migrated_v2) return; // already migrated this game, once — never touch again
+
 const countries = Object.assign({}, data.countries || {});
-let changed = false;
+
+// Fold any leftover legacy flat data into the same schema, preserving it.
+if (data.groups && Array.isArray(data.groups.main) && data.groups.main.length){
+data.groups.main.forEach(pkg => {
+const name = pkg.name || gcCountryName(key, pkg.flag || '🌍');
+const flag = pkg.flag || gcFlagForCountryName(key, name);
+if (!countries[name]) countries[name] = { flag, packages: [] };
+countries[name].packages.push({ label: pkg.label, price: pkg.price });
+});
+}
+
+// Fill in any default country that's still completely missing.
+const defaults = GC_DEFAULT_COUNTRIES[key] || {};
 Object.keys(defaults).forEach(name => {
 if (!countries[name] || !Array.isArray(countries[name].packages) || !countries[name].packages.length){
 countries[name] = JSON.parse(JSON.stringify(defaults[name]));
-changed = true;
 }
 });
-return changed ? fbDb.collection('products').doc(key).set({ countries }, { merge: true }) : null;
-}).catch(err => console.error('One-time repair failed for ' + key, err));
-})).then(() => {
-const doneMap = Object.assign({}, already);
-todo.forEach(k => doneMap[k] = true);
-metaRef.set({ done: doneMap }, { merge: true }).catch(err => console.error('Failed to mark repair done', err));
-});
-}).catch(err => console.error('One-time repair check failed', err));
-}
-gcRunOneTimeRepair();
 
-// One-tap repair: rebuilds Steam's 7 countries (Egypt, Ukraine, China, India,
-// Brazil, Europe, Saudi Arabia) straight from the built-in seed prices and
-// overwrites products/steam in Firestore with that, replacing whatever is
-// there now (e.g. if it got reduced down to just one country). Use this if
-// the Steam country list on the main site or in this panel ever comes up
-// empty or missing countries.
-function resetSteamCountries(){
-if (!confirm('هيتم استرجاع كل الدول السبعة لستيم بالأسعار الافتراضية، وأي تعديلات محفوظة حاليًا هتتمسح. تكمل؟')) return;
-const seed = SEED_PRODUCTS.giftcards.steam; // flat list, each row has a flag but no name
-const countries = {};
-seed.forEach(p => {
-const name = gcCountryName('steam', p.flag);
-if (!countries[name]) countries[name] = { flag: p.flag, packages: [] };
-countries[name].packages.push({ label: p.label, price: p.price });
-});
-fbDb.collection('products').doc('steam').set({ countries }).then(() => {
-alert('تم استرجاع كل الدول السبعة لستيم بنجاح.');
-}).catch(err => { console.error('Failed to reset steam countries', err); alert('حصل خطأ، حاول تاني.'); });
+fbDb.collection('products').doc(key).set({ countries, gc_migrated_v2: true }, { merge: true })
+.catch(err => console.error('Migration failed for ' + key, err));
+}).catch(err => console.error('Migration check failed for ' + key, err));
 }
+GC_REPAIR_KEYS.forEach(gcMigrateAndRepair);
 
 </script>
 
