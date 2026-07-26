@@ -2688,7 +2688,8 @@ if (PRODUCTS_CONFIG[containerId].doc === docId) pcRenderContainer(containerId);
 // created here automatically — no HTML/site changes needed for that to work.
 const COUNTRY_CATS = {
 playstation: { dropdown:'psn-country-dropdown', nameEl:'psn-country-name', flagEl:'psn-country-flag',
-singleGrid:true, anchorGrid:'psn-prices', toggleFn:'togglePsnAmt', qtyFn:'changePsnQtyCard', selectFn:'selectPsnCountry' },
+singleGrid:true, anchorGrid:'psn-prices', toggleFn:'togglePsnAmt', qtyFn:'changePsnQtyCard', selectFn:'selectPsnCountry',
+builtIn:{ 'Egypt':'psn-prices', 'USA':'psn-prices', 'UAE':'psn-prices', 'UK':'psn-prices', 'Turkey':'psn-prices', 'KSA':'psn-prices', 'Lebanon':'psn-prices', 'Kuwait':'psn-prices', 'Bahrain':'psn-prices', 'Qatar':'psn-prices', 'Brazil':'psn-prices' } },
 valorant: { dropdown:'valorant-country-dropdown', nameEl:'valorant-country-name', flagEl:'valorant-country-flag',
 builtIn:{ 'Egypt':'valorant-prices', 'Turkey':'valorant-prices-tr' }, anchorGrid:'valorant-prices-tr',
 toggleFn:'toggleValorantAmt', qtyFn:'changeValorantQtyCard', selectFn:'selectValorantCountry' },
