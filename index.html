@@ -2605,20 +2605,14 @@ const PRODUCTS_CONFIG = {
 'ff-id-prices':        { doc:'freefire',    group:'id',      kind:'freefire', toggleFn:'toggleFFIdAmt',  qtyFn:'changeFFIdQtyCard'  },
 'ff-acc-prices':       { doc:'freefire',    group:'account', kind:'freefire', toggleFn:'toggleFFAccAmt', qtyFn:'changeFFAccQtyCard' },
 'steam-prices':        { doc:'steam',       group:'main', kind:'generic', toggleFn:'toggleSteamAmt',     qtyFn:'changeSteamQtyCard' },
-'nintendo-prices':     { doc:'nintendo',    group:'main', kind:'generic', toggleFn:'toggleNintendoAmt',  qtyFn:'changeNintendoQtyCard' },
-'fc26-prices':         { doc:'fc26',        group:'main', kind:'generic', toggleFn:'toggleFc26Amt',      qtyFn:'changeFc26QtyCard' },
-'lol-prices':          { doc:'lol',         group:'main', kind:'generic', toggleFn:'toggleLolAmt',       qtyFn:'changeLolQtyCard' },
-'gearup-prices':       { doc:'gearup',      group:'main', kind:'generic', toggleFn:'toggleGearupAmt',    qtyFn:'changeGearupQtyCard' },
-'razergold-prices':    { doc:'razergold',   group:'main', kind:'generic', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard' },
-'minecraft-prices':    { doc:'minecraft',   group:'main', kind:'generic', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard' },
-'exitlag-prices':      { doc:'exitlag',     group:'main', kind:'generic', toggleFn:'toggleExitLagAmt',   qtyFn:'changeExitLagQtyCard' },
 };
-// Valorant / Battle.net / Xbox / PlayStation are country-based — handled by the
-// dedicated country engine below (COUNTRY_CATS), not by PRODUCTS_CONFIG.
+// Valorant / Battle.net / Xbox / PlayStation / Steam / Nintendo / FC26 / LoL /
+// GearUp / RazerGold / Minecraft / ExitLag are all country-based — handled by
+// the dedicated country engine below (COUNTRY_CATS), not by PRODUCTS_CONFIG.
 
 const productsCache = {}; // docId -> data
-const FALLBACK_COUNTRIES = {"valorant": {"Egypt": [{"label": "475 VP", "price": 289}, {"label": "1000 VP", "price": 562}, {"label": "2050 VP", "price": 1155}, {"label": "3650 VP", "price": 2021}, {"label": "5350 VP", "price": 2888}, {"label": "11000 VP", "price": 5660}], "Turkey": [{"label": "375 VP", "price": 165}, {"label": "825 VP", "price": 325}, {"label": "1700 VP", "price": 640}, {"label": "2925 VP", "price": 1090}, {"label": "4325 VP", "price": 1575}, {"label": "8900 VP", "price": 3150}]}, "battlenet": {"United States": [{"label": "5 USD", "price": 289}, {"label": "10 USD", "price": 578}, {"label": "20 USD", "price": 1155}, {"label": "50 USD", "price": 2888}], "Europe": [{"label": "20 EU", "price": 1449}, {"label": "50 EU", "price": 3617}, {"label": "100 EU", "price": 7235}]}, "xbox": {"United States": [{"label": "$5", "price": 299}, {"label": "$10", "price": 546}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}], "Turkey": [{"label": "25 TL", "price": 46}, {"label": "50 TL", "price": 84}, {"label": "100 TL", "price": 168}, {"label": "300 TL", "price": 425}]}, "playstation": {"USA": [{"label": "$1", "price": 76}, {"label": "$5", "price": 287}, {"label": "$10", "price": 557}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$200", "price": 10920}], "UAE": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$120", "price": 6552}, {"label": "$160", "price": 8736}], "UK": [{"label": "£10", "price": 814}, {"label": "£40", "price": 3255}, {"label": "£100", "price": 8138}], "Turkey": [{"label": "250 TL", "price": 336}, {"label": "500 TL", "price": 672}, {"label": "750 TL", "price": 1008}, {"label": "1000 TL", "price": 1344}, {"label": "1500 TL", "price": 2016}, {"label": "4000 TL", "price": 5355}], "KSA": [{"label": "$10", "price": 539}, {"label": "$20", "price": 1187}, {"label": "$50", "price": 2966}, {"label": "$100", "price": 5933}, {"label": "$160", "price": 9492}], "Lebanon": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$160", "price": 8736}], "Kuwait": [{"label": "$10", "price": 562}, {"label": "$20", "price": 1124}, {"label": "$50", "price": 2809}, {"label": "$100", "price": 5618}], "Bahrain": [{"label": "$10", "price": 578}, {"label": "$20", "price": 1155}, {"label": "$50", "price": 2888}, {"label": "$100", "price": 5775}], "Qatar": [{"label": "$10", "price": 572}, {"label": "$20", "price": 1145}, {"label": "$50", "price": 2861}], "Brazil": [{"label": "R$60", "price": 740}]}, "steam": {"Egypt": [{"label": "$1", "price": 79}, {"label": "$5", "price": 305}, {"label": "$10", "price": 605}, {"label": "$20", "price": 1210}, {"label": "$50", "price": 3024}, {"label": "$100", "price": 6048}], "Ukraine": [{"label": "30 UAH", "price": 56}, {"label": "110 UAH", "price": 173}, {"label": "280 UAH", "price": 410}, {"label": "450 UAH", "price": 656}, {"label": "670 UAH", "price": 977}, {"label": "1125 UAH", "price": 1638}], "China": [{"label": "5 CNY", "price": 56}, {"label": "16 CNY", "price": 174}, {"label": "43 CNY", "price": 404}, {"label": "70 CNY", "price": 656}, {"label": "104 CNY", "price": 977}, {"label": "173 CNY", "price": 1612}], "India": [{"label": "65 INR", "price": 56}, {"label": "240 INR", "price": 173}, {"label": "385 INR", "price": 278}, {"label": "605 INR", "price": 410}, {"label": "970 INR", "price": 656}, {"label": "1450 INR", "price": 977}], "Brazil": [{"label": "10 BRL", "price": 140}, {"label": "25 BRL", "price": 331}, {"label": "63 BRL", "price": 809}, {"label": "100 BRL", "price": 1281}], "Europe": [{"label": "5 EUR", "price": 415}, {"label": "10 EUR", "price": 761}, {"label": "30 EUR", "price": 2284}], "Saudi Arabia": [{"label": "20 SAR", "price": 325}, {"label": "50 SAR", "price": 798}, {"label": "100 SAR", "price": 1596}, {"label": "200 SAR", "price": 3192}]}};
-const COUNTRY_FLAGS = {"valorant": {"Egypt": "🇪🇬", "Turkey": "🇹🇷"}, "battlenet": {"United States": "🇺🇸", "Europe": "🇪🇺"}, "xbox": {"United States": "🇺🇸", "Turkey": "🇹🇷"}, "playstation": {"USA": "🇺🇸", "UAE": "🇦🇪", "UK": "🇬🇧", "Turkey": "🇹🇷", "KSA": "🇸🇦", "Lebanon": "🇱🇧", "Kuwait": "🇰🇼", "Bahrain": "🇧🇭", "Qatar": "🇶🇦", "Brazil": "🇧🇷"}, "steam": {"Egypt": "🇪🇬", "Ukraine": "🇺🇦", "China": "🇨🇳", "India": "🇮🇳", "Brazil": "🇧🇷", "Europe": "🇪🇺", "Saudi Arabia": "🇸🇦"}};
+const FALLBACK_COUNTRIES = {"valorant": {"Egypt": [{"label": "475 VP", "price": 289}, {"label": "1000 VP", "price": 562}, {"label": "2050 VP", "price": 1155}, {"label": "3650 VP", "price": 2021}, {"label": "5350 VP", "price": 2888}, {"label": "11000 VP", "price": 5660}], "Turkey": [{"label": "375 VP", "price": 165}, {"label": "825 VP", "price": 325}, {"label": "1700 VP", "price": 640}, {"label": "2925 VP", "price": 1090}, {"label": "4325 VP", "price": 1575}, {"label": "8900 VP", "price": 3150}]}, "battlenet": {"United States": [{"label": "5 USD", "price": 289}, {"label": "10 USD", "price": 578}, {"label": "20 USD", "price": 1155}, {"label": "50 USD", "price": 2888}], "Europe": [{"label": "20 EU", "price": 1449}, {"label": "50 EU", "price": 3617}, {"label": "100 EU", "price": 7235}]}, "xbox": {"United States": [{"label": "$5", "price": 299}, {"label": "$10", "price": 546}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}], "Turkey": [{"label": "25 TL", "price": 46}, {"label": "50 TL", "price": 84}, {"label": "100 TL", "price": 168}, {"label": "300 TL", "price": 425}]}, "playstation": {"USA": [{"label": "$1", "price": 76}, {"label": "$5", "price": 287}, {"label": "$10", "price": 557}, {"label": "$25", "price": 1365}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$200", "price": 10920}], "UAE": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$120", "price": 6552}, {"label": "$160", "price": 8736}], "UK": [{"label": "£10", "price": 814}, {"label": "£40", "price": 3255}, {"label": "£100", "price": 8138}], "Turkey": [{"label": "250 TL", "price": 336}, {"label": "500 TL", "price": 672}, {"label": "750 TL", "price": 1008}, {"label": "1000 TL", "price": 1344}, {"label": "1500 TL", "price": 2016}, {"label": "4000 TL", "price": 5355}], "KSA": [{"label": "$10", "price": 539}, {"label": "$20", "price": 1187}, {"label": "$50", "price": 2966}, {"label": "$100", "price": 5933}, {"label": "$160", "price": 9492}], "Lebanon": [{"label": "$10", "price": 546}, {"label": "$20", "price": 1092}, {"label": "$50", "price": 2730}, {"label": "$100", "price": 5460}, {"label": "$160", "price": 8736}], "Kuwait": [{"label": "$10", "price": 562}, {"label": "$20", "price": 1124}, {"label": "$50", "price": 2809}, {"label": "$100", "price": 5618}], "Bahrain": [{"label": "$10", "price": 578}, {"label": "$20", "price": 1155}, {"label": "$50", "price": 2888}, {"label": "$100", "price": 5775}], "Qatar": [{"label": "$10", "price": 572}, {"label": "$20", "price": 1145}, {"label": "$50", "price": 2861}], "Brazil": [{"label": "R$60", "price": 740}]}, "steam": {"Egypt": [{"label": "$1", "price": 79}, {"label": "$5", "price": 305}, {"label": "$10", "price": 605}, {"label": "$20", "price": 1210}, {"label": "$50", "price": 3024}, {"label": "$100", "price": 6048}], "Ukraine": [{"label": "30 UAH", "price": 56}, {"label": "110 UAH", "price": 173}, {"label": "280 UAH", "price": 410}, {"label": "450 UAH", "price": 656}, {"label": "670 UAH", "price": 977}, {"label": "1125 UAH", "price": 1638}], "China": [{"label": "5 CNY", "price": 56}, {"label": "16 CNY", "price": 174}, {"label": "43 CNY", "price": 404}, {"label": "70 CNY", "price": 656}, {"label": "104 CNY", "price": 977}, {"label": "173 CNY", "price": 1612}], "India": [{"label": "65 INR", "price": 56}, {"label": "240 INR", "price": 173}, {"label": "385 INR", "price": 278}, {"label": "605 INR", "price": 410}, {"label": "970 INR", "price": 656}, {"label": "1450 INR", "price": 977}], "Brazil": [{"label": "10 BRL", "price": 140}, {"label": "25 BRL", "price": 331}, {"label": "63 BRL", "price": 809}, {"label": "100 BRL", "price": 1281}], "Europe": [{"label": "5 EUR", "price": 415}, {"label": "10 EUR", "price": 761}, {"label": "30 EUR", "price": 2284}], "Saudi Arabia": [{"label": "20 SAR", "price": 325}, {"label": "50 SAR", "price": 798}, {"label": "100 SAR", "price": 1596}, {"label": "200 SAR", "price": 3192}]}, "nintendo": {"USA": [{"label": "$5", "price": 294}, {"label": "$10", "price": 583}, {"label": "$20", "price": 1166}, {"label": "$35", "price": 2041}, {"label": "$50", "price": 2914}, {"label": "Nintendo Online - 3 Months", "price": 490}, {"label": "Nintendo Online - 12 Months", "price": 1210}]}, "fc26": {"Global": [{"label": "1050 Points", "price": 509}, {"label": "2800 Points", "price": 1276}, {"label": "5900 Points", "price": 2552}, {"label": "12000 Points", "price": 5087}]}, "lol": {"Egypt": [{"label": "575 RP", "price": 289}, {"label": "1240 RP", "price": 562}, {"label": "2540 RP", "price": 1155}, {"label": "4500 RP", "price": 2021}, {"label": "6500 RP", "price": 2888}, {"label": "13500 RP", "price": 5775}]}, "gearup": {"Global": [{"label": "1 Month", "price": 250}, {"label": "3 Months", "price": 680}, {"label": "12 Months", "price": 2400}]}, "razergold": {"Turkey": [{"label": "5 TL", "price": 15}, {"label": "25 TL", "price": 45}, {"label": "100 TL", "price": 159}, {"label": "250 TL", "price": 355}, {"label": "500 TL", "price": 710}, {"label": "1000 TL", "price": 1415}]}, "minecraft": {"Global": [{"label": "330", "price": 252}, {"label": "1720", "price": 460}, {"label": "3500", "price": 936}]}, "exitlag": {"Global": [{"label": "1", "price": 399}, {"label": "3", "price": 1199}]}};
+const COUNTRY_FLAGS = {"valorant": {"Egypt": "🇪🇬", "Turkey": "🇹🇷"}, "battlenet": {"United States": "🇺🇸", "Europe": "🇪🇺"}, "xbox": {"United States": "🇺🇸", "Turkey": "🇹🇷"}, "playstation": {"USA": "🇺🇸", "UAE": "🇦🇪", "UK": "🇬🇧", "Turkey": "🇹🇷", "KSA": "🇸🇦", "Lebanon": "🇱🇧", "Kuwait": "🇰🇼", "Bahrain": "🇧🇭", "Qatar": "🇶🇦", "Brazil": "🇧🇷"}, "steam": {"Egypt": "🇪🇬", "Ukraine": "🇺🇦", "China": "🇨🇳", "India": "🇮🇳", "Brazil": "🇧🇷", "Europe": "🇪🇺", "Saudi Arabia": "🇸🇦"}, "nintendo": {"USA": "🇺🇸"}, "fc26": {"Global": "🌍"}, "lol": {"Egypt": "🇪🇬"}, "gearup": {"Global": "🌍"}, "razergold": {"Turkey": "🇹🇷"}, "minecraft": {"Global": "🌐"}, "exitlag": {"Global": "🌐"}};
 
 function pcBuildCardHTML(item, cfg){
 const price = Number(item.price) || 0;
@@ -2705,7 +2699,21 @@ xbox: { dropdown:'xbox-country-dropdown', nameEl:'xbox-country-name', flagEl:'xb
 builtIn:{ 'United States':'xbox-prices-us', 'Turkey':'xbox-prices-tr' }, anchorGrid:'xbox-prices-tr',
 toggleFn:'toggleXboxAmt', qtyFn:'changeXboxQtyCard', selectFn:'selectXboxCountry' },
 steam: { dropdown:'steam-country-dropdown', nameEl:'steam-country-name', flagEl:'steam-country-flag',
-singleGrid:true, anchorGrid:'steam-prices', toggleFn:'toggleSteamAmt', qtyFn:'changeSteamQtyCard', selectFn:'selectSteamCountry' }
+singleGrid:true, anchorGrid:'steam-prices', toggleFn:'toggleSteamAmt', qtyFn:'changeSteamQtyCard', selectFn:'selectSteamCountry' },
+nintendo: { dropdown:'nintendo-country-dropdown', nameEl:'nintendo-country-name', flagEl:'nintendo-country-flag',
+singleGrid:true, anchorGrid:'nintendo-prices', toggleFn:'toggleNintendoAmt', qtyFn:'changeNintendoQtyCard', selectFn:'selectNintendoCountry' },
+fc26: { dropdown:'fc26-country-dropdown', nameEl:'fc26-country-name', flagEl:'fc26-country-flag',
+singleGrid:true, anchorGrid:'fc26-prices', toggleFn:'toggleFc26Amt', qtyFn:'changeFc26QtyCard', selectFn:'selectFc26Country' },
+lol: { dropdown:'lol-country-dropdown', nameEl:'lol-country-name', flagEl:'lol-country-flag',
+singleGrid:true, anchorGrid:'lol-prices', toggleFn:'toggleLolAmt', qtyFn:'changeLolQtyCard', selectFn:'selectLolCountry' },
+gearup: { dropdown:'gearup-country-dropdown', nameEl:'gearup-country-name', flagEl:'gearup-country-flag',
+singleGrid:true, anchorGrid:'gearup-prices', toggleFn:'toggleGearupAmt', qtyFn:'changeGearupQtyCard', selectFn:'selectGearupCountry' },
+razergold: { dropdown:'razergold-country-dropdown', nameEl:'razergold-country-name', flagEl:'razergold-country-flag',
+singleGrid:true, anchorGrid:'razergold-prices', toggleFn:'toggleRazergoldAmt', qtyFn:'changeRazergoldQtyCard', selectFn:'selectRazergoldCountry' },
+minecraft: { dropdown:'minecraft-country-dropdown', nameEl:'minecraft-country-name', flagEl:'minecraft-country-flag',
+singleGrid:true, anchorGrid:'minecraft-prices', toggleFn:'toggleMinecraftAmt', qtyFn:'changeMinecraftQtyCard', selectFn:'selectMinecraftCountry' },
+exitlag: { dropdown:'exitlag-country-dropdown', nameEl:'exitlag-country-name', flagEl:'exitlag-country-flag',
+singleGrid:true, anchorGrid:'exitlag-prices', toggleFn:'toggleExitLagAmt', qtyFn:'changeExitLagQtyCard', selectFn:'selectExitLagCountry' }
 };
 Object.values(COUNTRY_CATS).forEach(cfg => { if (!cfg.builtIn) cfg.builtIn = {}; });
 
@@ -3033,6 +3041,10 @@ function closeSteamPage() {
 document.getElementById('steamPage').classList.remove('open');
 document.body.style.overflow = '';
 }
+function toggleSteamCountry() {
+const dd = document.getElementById('steam-country-dropdown');
+dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
 function selectSteamCountry(flag, name) {
 document.getElementById('steam-country-flag').textContent = flag;
 document.getElementById('steam-country-name').textContent = name;
@@ -3156,6 +3168,10 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('nintendo-country-dropdown').style.display = 'none';
+ccShowCountry('nintendo', name);
+nintendoCart = {};
+renderNintendoSummary();
+document.getElementById('nintendo-error').textContent = '';
 }
 let nintendoCart = {};
 function nintendoKey(card) {
@@ -3509,6 +3525,7 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('fc26-country-dropdown').style.display = 'none';
+ccShowCountry('fc26', name);
 fc26Cart = {};
 document.querySelectorAll('#fc26-prices .pcard').forEach(c => {
 c.classList.remove('has-qty');
@@ -3629,6 +3646,7 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('lol-country-dropdown').style.display = 'none';
+ccShowCountry('lol', name);
 lolCart = {};
 document.querySelectorAll('#lol-prices .pcard').forEach(c => {
 c.classList.remove('has-qty');
@@ -3749,6 +3767,7 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('gearup-country-dropdown').style.display = 'none';
+ccShowCountry('gearup', name);
 gearupCart = {};
 document.querySelectorAll('#gearup-prices .pcard').forEach(c => {
 c.classList.remove('has-qty');
@@ -3869,6 +3888,7 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('razergold-country-dropdown').style.display = 'none';
+ccShowCountry('razergold', name);
 razergoldCart = {};
 document.querySelectorAll('#razergold-prices .pcard').forEach(c => {
 c.classList.remove('has-qty');
@@ -3989,6 +4009,10 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('minecraft-country-dropdown').style.display = 'none';
+ccShowCountry('minecraft', name);
+minecraftCart = {};
+renderMinecraftSummary();
+document.getElementById('minecraft-error').textContent = '';
 }
 let minecraftCart = {};
 function minecraftKey(card) {
@@ -4403,6 +4427,10 @@ o.classList.remove('selected');
 if (o.textContent.trim() === (flag + ' ' + name)) o.classList.add('selected');
 });
 document.getElementById('exitlag-country-dropdown').style.display = 'none';
+ccShowCountry('exitlag', name);
+exitlagCart = {};
+renderExitLagSummary();
+document.getElementById('exitlag-error').textContent = '';
 }
 let exitlagCart = {};
 function exitlagKey(card) {
